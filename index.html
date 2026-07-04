@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Donasi &amp; Program Bantuan</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -280,6 +282,27 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // ---------- KONFIGURASI BACKEND (Apps Script) ----------
+    // Ganti dengan URL /exec hasil deploy Web App Apps Script kamu.
+    var EXEC_URL = 'https://script.google.com/macros/s/AKfycbyKOqDkt01f_hIcIVmFqqljy3XZ0_nLdUqczcMFjIg0iEyoSnb4yDgvaQapv0CHC-Pl/exec';
+
+    // Helper pemanggil backend, menggantikan google.script.run.
+    // Mengirim { action, payload } sebagai JSON, dengan Content-Type "text/plain"
+    // supaya browser TIDAK mengirim preflight OPTIONS (Apps Script tidak bisa
+    // merespons OPTIONS). Mengembalikan Promise yang resolve ke objek hasil
+    // parse JSON dari backend, mis. { success: true, data: [...] }.
+    function callBackend(action, payload) {
+      return fetch(EXEC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, payload: payload || {} })
+      })
+        .then(function (res) { return res.json(); })
+        .catch(function (err) {
+          return { success: false, message: 'Gagal menghubungi server: ' + err.message };
+        });
+    }
+
     // ---------- NAVIGATION ----------
     document.getElementById('nav').addEventListener('click', function (e) {
       if (e.target.tagName === 'BUTTON') {
@@ -312,11 +335,20 @@
       return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
     }
 
+    function showError(err) {
+      console.error(err);
+      var msg = (err && err.message) ? err.message : (typeof err === 'string' ? err : 'Terjadi kesalahan tidak diketahui');
+      toast('Terjadi kesalahan: ' + msg);
+    }
+
     // ---------- DASHBOARD ----------
     function loadDashboard() {
       var wrap = document.getElementById('dashboardList');
       wrap.innerHTML = '<p class="empty">Memuat data...</p>';
-      google.script.run.withSuccessHandler(renderDashboard).withFailureHandler(showError).getDashboardData();
+      callBackend('getDashboardData').then(function (res) {
+        if (res.success) renderDashboard(res.data);
+        else showError(res);
+      });
     }
 
     function renderDashboard(programs) {
@@ -348,7 +380,10 @@
     function openDetail(programId) {
       showView('detail');
       document.getElementById('detailContent').innerHTML = '<p class="empty">Memuat detail...</p>';
-      google.script.run.withSuccessHandler(function (d) { renderDetail(d, programId); }).withFailureHandler(showError).getProgramDetail(programId);
+      callBackend('getProgramDetail', { programId: programId }).then(function (res) {
+        if (res.success) renderDetail(res.data, programId);
+        else showError(res);
+      });
     }
 
     function renderDetail(detail, programId) {
@@ -399,64 +434,37 @@
     function cetakLaporan(programId, btn) {
       btn.disabled = true;
       btn.textContent = 'Membuat PDF...';
-      google.script.run.withSuccessHandler(function (url) {
+      callBackend('generateLaporanPDF', { programId: programId }).then(function (res) {
         btn.disabled = false;
         btn.textContent = '🖨️ Cetak Laporan PDF';
-        toast('Laporan berhasil dibuat!');
-        window.open(url, '_blank');
-      }).withFailureHandler(function (err) {
-        btn.disabled = false;
-        btn.textContent = '🖨️ Cetak Laporan PDF';
-        showError(err);
-      }).generateLaporanPDF(programId);
+        if (res.success) {
+          toast('Laporan berhasil dibuat!');
+          window.open(res.url, '_blank');
+        } else {
+          showError(res);
+        }
+      });
     }
 
     // ---------- FORM: PROGRAM BARU ----------
     document.getElementById('formProgram').addEventListener('submit', function (e) {
       e.preventDefault();
-      
-      var btn = e.target.querySelector('button[type="submit"]');
-      var originalText = btn.textContent;
-      
-      // UI Feedback: Cegah klik ganda dan beri indikator proses
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-
-      try {
-        var data = {
-          nama: document.getElementById('p_nama').value,
-          deskripsi: document.getElementById('p_deskripsi').value,
-          targetDana: document.getElementById('p_target').value,
-          tanggalMulai: document.getElementById('p_mulai').value,
-          tanggalSelesai: document.getElementById('p_selesai').value
-        };
-
-        google.script.run
-          .withSuccessHandler(function () {
-            toast('Program berhasil dibuat!');
-            e.target.reset();
-            showView('dashboard');
-            
-            // Kembalikan tombol ke kondisi semula setelah sukses
-            btn.disabled = false;
-            btn.textContent = originalText;
-          })
-          .withFailureHandler(function (err) {
-            showError(err);
-            
-            // Kembalikan tombol ke kondisi semula jika terjadi ralat server
-            btn.disabled = false;
-            btn.textContent = originalText;
-          })
-          .addProgram(data);
-          
-      } catch (err) {
-        showError(err);
-        
-        // Kembalikan tombol jika terjadi ralat di sisi klien/browser
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
+      var data = {
+        nama: document.getElementById('p_nama').value,
+        deskripsi: document.getElementById('p_deskripsi').value,
+        targetDana: document.getElementById('p_target').value,
+        tanggalMulai: document.getElementById('p_mulai').value,
+        tanggalSelesai: document.getElementById('p_selesai').value
+      };
+      callBackend('addProgram', data).then(function (res) {
+        if (res.success) {
+          toast('Program berhasil dibuat!');
+          e.target.reset();
+          showView('dashboard');
+        } else {
+          showError(res);
+        }
+      });
     });
 
     // ---------- FORM: DONASI ----------
@@ -470,10 +478,14 @@
         metode: document.getElementById('d_metode').value,
         catatan: document.getElementById('d_catatan').value
       };
-      google.script.run.withSuccessHandler(function () {
-        toast('Donasi berhasil dicatat!');
-        e.target.reset();
-      }).withFailureHandler(showError).addDonasi(data);
+      callBackend('addDonasi', data).then(function (res) {
+        if (res.success) {
+          toast('Donasi berhasil dicatat!');
+          e.target.reset();
+        } else {
+          showError(res);
+        }
+      });
     });
 
     // ---------- FORM: JADWALKAN PENYALURAN ----------
@@ -491,32 +503,39 @@
         nilaiRp: document.getElementById('py_nilai').value,
         tanggalJadwal: document.getElementById('py_tanggal').value
       };
-      google.script.run.withSuccessHandler(function () {
-        toast('Jadwal penyaluran berhasil disimpan!');
-        e.target.reset();
-      }).withFailureHandler(showError).addPenyaluran(data);
+      callBackend('addPenyaluran', data).then(function (res) {
+        if (res.success) {
+          toast('Jadwal penyaluran berhasil disimpan!');
+          e.target.reset();
+        } else {
+          showError(res);
+        }
+      });
     });
 
     // ---------- TAB: DISTRIBUSI TERJADWAL ----------
     function loadTerjadwal() {
       var wrap = document.getElementById('listTerjadwal');
       wrap.innerHTML = '<p class="empty">Memuat data...</p>';
-      google.script.run.withSuccessHandler(function (programs) {
-        // ambil detail semua program lalu gabungkan penyaluran berstatus Terjadwal
-        var promises = programs.map(function (p) { return p.id; });
-        if (!promises.length) { wrap.innerHTML = '<p class="empty">Belum ada program.</p>'; return; }
+      callBackend('getDashboardData').then(function (res) {
+        if (!res.success) { showError(res); return; }
+        var programs = res.data;
+        var ids = programs.map(function (p) { return p.id; });
+        if (!ids.length) { wrap.innerHTML = '<p class="empty">Belum ada program.</p>'; return; }
         var results = [];
         var count = 0;
-        promises.forEach(function (pid) {
-          google.script.run.withSuccessHandler(function (detail) {
+        ids.forEach(function (pid) {
+          callBackend('getProgramDetail', { programId: pid }).then(function (detailRes) {
             count++;
-            (detail.penyaluran || []).forEach(function (py) {
-              if (py.Status !== 'Selesai') results.push(py);
-            });
-            if (count === promises.length) renderTerjadwal(results);
-          }).withFailureHandler(showError).getProgramDetail(pid);
+            if (detailRes.success) {
+              (detailRes.data.penyaluran || []).forEach(function (py) {
+                if (py.Status !== 'Selesai') results.push(py);
+              });
+            }
+            if (count === ids.length) renderTerjadwal(results);
+          });
         });
-      }).withFailureHandler(showError).getDashboardData();
+      });
     }
 
     function renderTerjadwal(list) {
@@ -556,11 +575,15 @@
         buktiFotoUrl: document.getElementById('bk_foto').value,
         kwitansiUrl: document.getElementById('bk_kwitansi').value
       };
-      google.script.run.withSuccessHandler(function () {
-        toast('Bukti berhasil disimpan, distribusi selesai!');
-        closeModal();
-        loadTerjadwal();
-      }).withFailureHandler(showError).lengkapiBuktiPenyaluran(data);
+      callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
+        if (res.success) {
+          toast('Bukti berhasil disimpan, distribusi selesai!');
+          closeModal();
+          loadTerjadwal();
+        } else {
+          showError(res);
+        }
+      });
     });
 
     // ---------- FORM: PENERIMA MANFAAT ----------
@@ -575,15 +598,21 @@
         namaOrtuAlm: document.getElementById('pm_ortu').value,
         kontak: document.getElementById('pm_kontak').value
       };
-      google.script.run.withSuccessHandler(function () {
-        toast('Penerima manfaat berhasil ditambahkan!');
-        e.target.reset();
-        loadPenerimaTable();
-      }).withFailureHandler(showError).addPenerima(data);
+      callBackend('addPenerima', data).then(function (res) {
+        if (res.success) {
+          toast('Penerima manfaat berhasil ditambahkan!');
+          e.target.reset();
+          loadPenerimaTable();
+        } else {
+          showError(res);
+        }
+      });
     });
 
     function loadPenerimaTable() {
-      google.script.run.withSuccessHandler(function (list) {
+      callBackend('getAllPenerima').then(function (res) {
+        if (!res.success) { showError(res); return; }
+        var list = res.data;
         var tbody = document.querySelector('#tabelPenerima tbody');
         tbody.innerHTML = '';
         if (!list.length) {
@@ -593,12 +622,14 @@
         list.forEach(function (pm) {
           tbody.innerHTML += '<tr><td>' + pm.Nama + '</td><td>' + (pm.Wilayah || '-') + '</td><td>' + (pm.Sekolah || '-') + '</td><td>' + (pm.Kelas || '-') + '</td><td>' + (pm.Umur || '-') + '</td><td>' + (pm.NamaOrtuAlm || '-') + '</td></tr>';
         });
-      }).withFailureHandler(showError).getAllPenerima();
+      });
     }
 
     // ---------- SHARED OPTIONS LOADERS ----------
     function loadProgramOptions() {
-      google.script.run.withSuccessHandler(function (programs) {
+      callBackend('getPrograms').then(function (res) {
+        if (!res.success) { showError(res); return; }
+        var programs = res.data;
         ['d_program', 'py_program'].forEach(function (id) {
           var sel = document.getElementById(id);
           if (!sel) return;
@@ -607,22 +638,18 @@
             sel.innerHTML += '<option value="' + p.ID + '">' + p.Nama + '</option>';
           });
         });
-      }).withFailureHandler(showError).getPrograms();
+      });
     }
 
     function loadPenerimaOptions() {
-      google.script.run.withSuccessHandler(function (list) {
+      callBackend('getAllPenerima').then(function (res) {
+        if (!res.success) { showError(res); return; }
         var sel = document.getElementById('py_penerima');
         sel.innerHTML = '<option value="">-- Pilih Penerima --</option>';
-        list.forEach(function (pm) {
+        res.data.forEach(function (pm) {
           sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>';
         });
-      }).withFailureHandler(showError).getAllPenerima();
-    }
-
-    function showError(err) {
-      console.error(err);
-      toast('Terjadi kesalahan: ' + (err.message || err));
+      });
     }
 
     // ---------- INIT ----------
