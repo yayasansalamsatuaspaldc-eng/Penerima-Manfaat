@@ -1,169 +1,698 @@
-// ====== FUNGSI PENYALURAN (Diperbarui untuk Upload File) ======
-function lengkapiBuktiPenyaluran(data) {
-  try {
-    var sheet = getSheet_('Penyaluran');
-    var rows = sheet.getDataRange().getValues();
-    var headers = rows[0];
-    var idCol = headers.indexOf('ID');
-    var realisasiCol = headers.indexOf('TanggalRealisasi');
-    var statusCol = headers.indexOf('Status');
-    var buktiCol = headers.indexOf('BuktiFotoURL');
-    var kwitansiCol = headers.indexOf('KwitansiURL');
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Donasi & Program Bantuan</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --green: #16a34a;
+      --red: #dc2626;
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 20px 24px;
+    }
+    header h1 { margin: 0; font-size: 20px; }
+    header p { margin: 4px 0 0; opacity: 0.85; font-size: 13px; }
 
-    // ID Folder Drive tujuan untuk foto, kwitansi, dan PDF
-    var folderId = '1kEFXyyEVycJopx2CtitUPfskzI77hjJV';
-    var folder = DriveApp.getFolderById(folderId);
+    nav {
+      display: flex;
+      gap: 4px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      overflow-x: auto;
+    }
+    nav button {
+      border: none;
+      background: none;
+      padding: 14px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--muted);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    nav button.active { color: var(--primary); border-color: var(--primary); font-weight: 600; }
 
-    var fotoUrl = '';
-    var kwitansiUrl = '';
+    main { padding: 20px; max-width: 1000px; margin: 0 auto; }
+    .view { display: none; }
+    .view.active { display: block; }
 
-    // Proses konversi dan unggah Foto ke Google Drive
-    if (data.fotoBase64) {
-      var fotoBlob = Utilities.newBlob(Utilities.base64Decode(data.fotoBase64), data.fotoMime, 'Foto_' + data.penyaluranId + '_' + data.fotoName);
-      var fotoFile = folder.createFile(fotoBlob);
-      fotoFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      fotoUrl = fotoFile.getUrl();
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px; }
+
+    .prog-card h3 { margin: 0 0 4px; font-size: 16px; }
+    .prog-card .desc { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .status-badge {
+      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+      background: #dcfce7; color: var(--green); font-weight: 600; margin-left: 6px;
+    }
+    .status-badge.selesai { background: #e2e8f0; color: var(--muted); }
+
+    .bar-wrap { background: #eef1f6; border-radius: 6px; height: 10px; overflow: hidden; margin: 8px 0; }
+    .bar-fill { height: 100%; background: var(--green); }
+    .row-num { display: flex; justify-content: space-between; font-size: 13px; margin: 3px 0; }
+    .row-num b { font-weight: 600; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; }
+
+    button.btn {
+      background: var(--primary); color: white; border: none; border-radius: 8px;
+      padding: 9px 14px; font-size: 13px; cursor: pointer; transition: 0.2s;
+    }
+    button.btn:hover { background: var(--primary-dark); }
+    button.btn.secondary { background: #eef1f6; color: var(--text); }
+    button.btn.secondary:hover { background: #e2e8f0; }
+    button.btn.small { padding: 6px 10px; font-size: 12px; }
+    button.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    form label { display: block; font-size: 13px; margin: 12px 0 4px; color: var(--text); font-weight: 500; }
+    form input, form select, form textarea {
+      width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+    }
+    form textarea { resize: vertical; min-height: 60px; }
+    
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; min-width: 600px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; background: #f8fafc; }
+
+    .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 30px 0; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 9999;
+    }
+    .toast.show { opacity: 1; }
+    .back-link { color: var(--primary); font-size: 13px; cursor: pointer; margin-bottom: 15px; display: inline-block; font-weight: 500; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; text-align: center; margin: 14px 0; }
+    .summary-grid div { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+    .summary-grid div b { display: block; font-size: 16px; color: var(--primary-dark); margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📋 Aplikasi Donasi & Program Bantuan</h1>
+    <p>Yayasan Salam Satu Aspal (YASSA)</p>
+  </header>
+
+  <nav id="nav">
+    <button data-view="dashboard" class="active">📊 Dashboard & Laporan</button>
+    <button data-view="programDonasi">💰 Program & Donasi</button>
+    <button data-view="penerima">👥 Data Penerima</button>
+    <button data-view="distribusi">🎁 Distribusi Bantuan</button>
+  </nav>
+
+  <main>
+
+    <!-- 1. DASHBOARD & LAPORAN -->
+    <div class="view active" id="view-dashboard">
+      <div id="dashboardList" class="grid"><p class="empty">Memuat data...</p></div>
+    </div>
+
+    <!-- DETAIL PROGRAM (Sub-view dari Dashboard) -->
+    <div class="view" id="view-detail">
+      <span class="back-link" onclick="showView('dashboard')">&larr; Kembali ke Dashboard</span>
+      <div id="detailContent"></div>
+    </div>
+
+    <!-- 2. PROGRAM & DONASI (Digabung) -->
+    <div class="view" id="view-programDonasi">
+      <div class="grid-2">
+        <!-- Kolom Kiri: Buat Program -->
+        <div class="card">
+          <h3>1. Buat Program Bantuan Baru</h3>
+          <p style="color:var(--muted); font-size:13px; margin-top:-4px;">Buat wadah kegiatan sebelum mencatat uang masuk.</p>
+          <form id="formProgram">
+            <label>Nama Program</label>
+            <input type="text" id="p_nama" placeholder="Contoh: Bantuan Seragam Ibu Syarifah" required>
+            <label>Deskripsi (Opsional)</label>
+            <textarea id="p_deskripsi" placeholder="Deskripsi singkat kegiatan"></textarea>
+            <label>Target Dana (Rp) - Opsional</label>
+            <input type="number" id="p_target" placeholder="0">
+            <label>Tanggal Mulai</label>
+            <input type="date" id="p_mulai">
+            <label>Tanggal Selesai</label>
+            <input type="date" id="p_selesai">
+            <div class="actions">
+              <button type="submit" class="btn">Simpan Program</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Kolom Kanan: Input Donasi -->
+        <div class="card">
+          <h3>2. Catat Dana Masuk (Donasi)</h3>
+          <p style="color:var(--muted); font-size:13px; margin-top:-4px;">Catat uang dari donatur agar kas program bertambah.</p>
+          <form id="formDonasi">
+            <label>Pilih Program</label>
+            <select id="d_program" required></select>
+            <label>Nama Donatur</label>
+            <input type="text" id="d_nama" required>
+            <label>Jumlah Donasi (Rp)</label>
+            <input type="number" id="d_jumlah" required>
+            <label>Tanggal Masuk</label>
+            <input type="date" id="d_tanggal" required>
+            <label>Metode Penyerahan</label>
+            <select id="d_metode">
+              <option>Tunai</option>
+              <option>Transfer Bank</option>
+              <option>QRIS</option>
+              <option>Lainnya</option>
+            </select>
+            <div class="actions">
+              <button type="submit" class="btn">Simpan Donasi</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. DATA PENERIMA MANFAAT -->
+    <div class="view" id="view-penerima">
+      <div class="card">
+        <h3>Pendaftaran Anak Yatim / Penerima</h3>
+        <form id="formPenerima">
+          <div class="grid-2">
+            <div>
+              <label>Nama Anak Yatim</label>
+              <input type="text" id="pm_nama" required>
+              <label>Wilayah</label>
+              <input type="text" id="pm_wilayah" placeholder="Contoh: Kota Bekasi / Kab. Bekasi">
+              <label>Sekolah & Kelas</label>
+              <input type="text" id="pm_sekolah" placeholder="Contoh: SDN 01 (Kelas 5)">
+            </div>
+            <div>
+              <label>Nama Orang Tua (Almarhum/Alm.)</label>
+              <input type="text" id="pm_ortu" placeholder="Contoh: Bp. Fulan">
+              <label>Umur (Tahun)</label>
+              <input type="number" id="pm_umur">
+              <label>Kontak Wali (Opsional)</label>
+              <input type="text" id="pm_kontak">
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn">Daftarkan Penerima</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Database Penerima Manfaat</h3>
+        <div class="table-container">
+          <table id="tabelPenerima">
+            <thead><tr><th>Nama</th><th>Wilayah</th><th>Sekolah</th><th>Nama Alm/Ortu</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DISTRIBUSI BANTUAN (Jadwal & Upload Digabung) -->
+    <div class="view" id="view-distribusi">
+      <div class="card">
+        <h3>Jadwalkan Distribusi (Oleh Korwil)</h3>
+        <form id="formPenyaluran">
+          <div class="grid-2">
+            <div>
+              <label>Pilih Program</label>
+              <select id="py_program" required></select>
+              <label>Pilih Anak Penerima</label>
+              <select id="py_penerima" required></select>
+              <label>Nama Korwil / PIC</label>
+              <input type="text" id="py_pic" placeholder="Nama Korwil yang bertugas" required>
+              <label>Wilayah Distribusi</label>
+              <input type="text" id="py_wilayah" placeholder="Contoh: Bekasi Kota" required>
+            </div>
+            <div>
+              <label>Bentuk Bantuan</label>
+              <input type="text" id="py_item" placeholder="Contoh: Seragam Sekolah / Uang Tunai" required>
+              <label>Nilai Bantuan (Rp)</label>
+              <input type="number" id="py_nilai" required>
+              <label>Tanggal Rencana Diberikan</label>
+              <input type="date" id="py_tanggal" required>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn">Jadwalkan Bantuan</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Bantuan Menunggu Bukti (Hari-H)</h3>
+        <p style="color:var(--muted); font-size:13px; margin-top:-6px;">Klik tombol "Unggah Bukti" pada hari-H pembagian kepada anak.</p>
+        <div class="table-container" id="listTerjadwal">
+          <p class="empty">Memuat data...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL UNGGAH BUKTI -->
+    <div class="card" id="modalBukti" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:90%; max-width:420px; z-index:50; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+      <h3>Unggah Bukti Pembagian</h3>
+      <form id="formBukti">
+        <input type="hidden" id="bk_id">
+        <label>Tanggal Realisasi (Hari ini)</label>
+        <input type="date" id="bk_tanggal" required>
+        <label>Upload Bukti Foto (Dari Galeri HP)</label>
+        <input type="file" id="bk_foto" accept="image/*" required>
+        <label>Upload Kwitansi (Dari Galeri HP)</label>
+        <input type="file" id="bk_kwitansi" accept="image/*" required>
+        <div class="actions" style="margin-top: 20px;">
+          <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
+          <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
+        </div>
+      </form>
+    </div>
+    <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); z-index:40;" onclick="closeModal()"></div>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---------- KONFIGURASI BACKEND (Apps Script) ----------
+    // PENTING: Ganti dengan URL hasil "New deployment" terbaru dari Apps Script.
+    var EXEC_URL = 'https://script.google.com/macros/s/AKfycbwPz26F8a3H20g_1o1jK_mO4V-BwDqgXb1Z7F-R9l8x/exec';
+
+    // Helper pemanggil backend dengan fetch (Bypass CORS)
+    function callBackend(action, payload) {
+      return fetch(EXEC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: action, payload: payload || {} }),
+        redirect: 'follow'
+      })
+        .then(function (res) { return res.text(); })
+        .then(function (text) {
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            console.error('Respons server tidak valid:', text);
+            if (text.includes('<!DOCTYPE') || text.toLowerCase().includes('<html')) {
+              throw new Error('Akses ditolak oleh Google. Pastikan "Who has access" diset ke "Anyone" saat deploy.');
+            } else if (text.includes('Backend API')) {
+              throw new Error('Salah endpoint (memanggil doGet). Pastikan URL menggunakan hasil "New deployment" terbaru.');
+            } else {
+              throw new Error('Server mengembalikan respons tidak valid (404/Redirect gagal).');
+            }
+          }
+        })
+        .catch(function (err) {
+          return { success: false, message: 'Gagal menghubungi server: ' + err.message };
+        });
     }
 
-    // Proses konversi dan unggah Kwitansi ke Google Drive
-    if (data.kwitansiBase64) {
-      var kwitBlob = Utilities.newBlob(Utilities.base64Decode(data.kwitansiBase64), data.kwitansiMime, 'Kwitansi_' + data.penyaluranId + '_' + data.kwitansiName);
-      var kwitFile = folder.createFile(kwitBlob);
-      kwitFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      kwitansiUrl = kwitFile.getUrl();
-    }
+    // ---------- NAVIGATION LOGIC (4 Menu Utama) ----------
+    document.getElementById('nav').addEventListener('click', function (e) {
+      if (e.target.tagName === 'BUTTON') {
+        showView(e.target.dataset.view);
+      }
+    });
 
-    // Update data link di Spreadsheet
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][idCol] === data.penyaluranId) {
-        sheet.getRange(i + 1, realisasiCol + 1).setValue(data.tanggalRealisasi || new Date());
-        sheet.getRange(i + 1, statusCol + 1).setValue('Selesai');
-        if (fotoUrl) sheet.getRange(i + 1, buktiCol + 1).setValue(fotoUrl);
-        if (kwitansiUrl) sheet.getRange(i + 1, kwitansiCol + 1).setValue(kwitansiUrl);
-        return true;
+    function showView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + name).classList.add('active');
+      
+      document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+      var navBtn = document.querySelector('#nav button[data-view="' + name + '"]');
+      if (navBtn) navBtn.classList.add('active');
+
+      if (name === 'dashboard') loadDashboard();
+      if (name === 'programDonasi') loadProgramOptions();
+      if (name === 'penerima') loadPenerimaTable();
+      if (name === 'distribusi') {
+        loadProgramOptions();
+        loadPenerimaOptions();
+        loadTerjadwal();
       }
     }
-    throw new Error('Data penyaluran tidak ditemukan');
-  } catch (e) {
-    throw new Error('Gagal memproses unggahan bukti: ' + e.message);
-  }
-}
 
-// ====== GENERATE LAPORAN PDF (Diperbarui dengan Folder ID & Lampiran) ======
-function generateLaporanPDF(programId) {
-  var detail = getProgramDetail(programId);
-  var p = detail.program;
-  if (!p) throw new Error('Program tidak ditemukan');
+    function toast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
 
-  // Menggunakan Folder ID yang sudah ditentukan
-  var folderId = '1kEFXyyEVycJopx2CtitUPfskzI77hjJV';
-  var folder = DriveApp.getFolderById(folderId);
-  
-  var doc = DocumentApp.create('LPJ - ' + p.Nama + ' - ' + Utilities.formatDate(new Date(), 'GMT+7', 'dd-MM-yyyy'));
-  var body = doc.getBody();
+    function formatRp(n) {
+      return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+    }
 
-  body.appendParagraph('LAPORAN PERTANGGUNGJAWABAN')
-    .setHeading(DocumentApp.ParagraphHeading.TITLE)
-    .setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-  body.appendParagraph(p.Nama)
-    .setHeading(DocumentApp.ParagraphHeading.HEADING1)
-    .setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-  body.appendParagraph(' ');
+    function showError(err) {
+      console.error(err);
+      var msg = (err && err.message) ? err.message : (typeof err === 'string' ? err : 'Terjadi kesalahan');
+      toast('❌ Error: ' + msg);
+    }
 
-  body.appendParagraph('Deskripsi Program: ' + (p.Deskripsi || '-'));
-  body.appendParagraph('Periode: ' + formatTgl_(p.TanggalMulai) + ' s/d ' + formatTgl_(p.TanggalSelesai));
-  body.appendParagraph('Target Dana: Rp ' + formatRp_(p.TargetDana));
-  body.appendParagraph(' ');
+    function fmtDate(v) {
+      if (!v) return '-';
+      var d = new Date(v);
+      if (isNaN(d.getTime())) return v;
+      return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
 
-  body.appendParagraph('RINCIAN DONASI MASUK').setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  var tabelDonasi = [['No', 'Nama Donatur', 'Jumlah', 'Tanggal', 'Metode']];
-  detail.donasi.forEach(function (d, i) {
-    tabelDonasi.push([String(i + 1), d.NamaDonatur, 'Rp ' + formatRp_(d.Jumlah), formatTgl_(d.Tanggal), d.Metode || '-']);
-  });
-  if (detail.donasi.length) body.appendTable(tabelDonasi);
-  body.appendParagraph('Total Donasi Masuk: Rp ' + formatRp_(detail.totalMasuk)).editAsText().setBold(true);
-  body.appendParagraph(' ');
+    // ---------- DASHBOARD & LAPORAN ----------
+    function loadDashboard() {
+      var wrap = document.getElementById('dashboardList');
+      wrap.innerHTML = '<p class="empty">Memuat data...</p>';
+      callBackend('getDashboardData').then(function (res) {
+        if (res.success) renderDashboard(res.data);
+        else showError(res);
+      });
+    }
 
-  body.appendParagraph('RINCIAN PENYALURAN BANTUAN').setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  var tabelPenyaluran = [['No', 'Penerima Manfaat', 'Wilayah', 'PIC', 'Bantuan', 'Nilai', 'Tgl Realisasi', 'Status', 'Bukti']];
-  detail.penyaluran.forEach(function (py, i) {
-    var bukti = (py.BuktiFotoURL ? 'Foto ✓' : 'Foto -') + ' / ' + (py.KwitansiURL ? 'Kwitansi ✓' : 'Kwitansi -');
-    tabelPenyaluran.push([
-      String(i + 1), py.NamaPenerima, py.Wilayah || '-', py.PIC || '-', py.ItemBantuan,
-      'Rp ' + formatRp_(py.NilaiRp), py.Status === 'Selesai' ? formatTgl_(py.TanggalRealisasi) : '-',
-      py.Status || 'Terjadwal', bukti
-    ]);
-  });
-  if (detail.penyaluran.length) body.appendTable(tabelPenyaluran);
-  body.appendParagraph('Total Sudah Tersalurkan : Rp ' + formatRp_(detail.totalTersalurkan)).editAsText().setBold(true);
-  body.appendParagraph('Total Masih Terjadwal   : Rp ' + formatRp_(detail.totalTerjadwal));
-  body.appendParagraph(' ');
+    function renderDashboard(programs) {
+      var wrap = document.getElementById('dashboardList');
+      if (!programs.length) {
+        wrap.innerHTML = '<p class="empty">Belum ada program. Silakan buat program di menu "Program & Donasi".</p>';
+        return;
+      }
+      wrap.innerHTML = '';
+      programs.forEach(function (p) {
+        var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
+        var div = document.createElement('div');
+        div.className = 'card prog-card';
+        div.innerHTML =
+          '<h3>' + p.nama + '<span class="status-badge ' + (p.status === 'Selesai' ? 'selesai' : '') + '">' + p.status + '</span></h3>' +
+          '<div class="desc">' + (p.deskripsi || '') + '</div>' +
+          '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
+          '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
+          '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
+          (p.targetDana > 0 ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div><div class="row-num"><span style="color:var(--muted);font-size:11px;">Target: ' + formatRp(p.targetDana) + '</span><span style="font-size:11px;">' + pct + '%</span></div>' : '') +
+          '<div class="actions" style="margin-top:15px;"><button class="btn small" style="width:100%" onclick="openDetail(\'' + p.id + '\')">Lihat Detail & Cetak PDF</button></div>';
+        wrap.appendChild(div);
+      });
+    }
 
-  body.appendParagraph('RINGKASAN').setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  body.appendParagraph('Total Dana Masuk        : Rp ' + formatRp_(detail.totalMasuk));
-  body.appendParagraph('Total Sudah Tersalurkan : Rp ' + formatRp_(detail.totalTersalurkan));
-  body.appendParagraph('Total Masih Terjadwal   : Rp ' + formatRp_(detail.totalTerjadwal));
-  body.appendParagraph('Sisa Saldo Belum Terpakai: Rp ' + formatRp_(detail.saldo)).editAsText().setBold(true);
-  body.appendParagraph(' ');
+    function openDetail(programId) {
+      showView('detail');
+      document.getElementById('detailContent').innerHTML = '<p class="empty">Memuat detail, mohon tunggu...</p>';
+      callBackend('getProgramDetail', { programId: programId }).then(function (res) {
+        if (res.success) renderDetail(res.data, programId);
+        else showError(res);
+      });
+    }
 
-  // Lampiran Foto & Kwitansi
-  var selesaiPenyaluran = detail.penyaluran.filter(function(py) { return py.Status === 'Selesai' && (py.BuktiFotoURL || py.KwitansiURL); });
-  
-  if (selesaiPenyaluran.length > 0) {
-    body.appendPageBreak();
-    body.appendParagraph('LAMPIRAN BUKTI PENYALURAN')
-      .setHeading(DocumentApp.ParagraphHeading.HEADING1)
-      .setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-    body.appendParagraph(' ');
+    function renderDetail(detail, programId) {
+      var p = detail.program;
+      var html = '<div class="card">';
+      html += '<h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>';
+      html += '<div class="summary-grid">' +
+        '<div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div>' +
+        '<div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div>' +
+        '<div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>';
+      html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + programId + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
+      html += '</div>';
 
-    selesaiPenyaluran.forEach(function(py, i) {
-      body.appendParagraph(String(i + 1) + '. Penerima: ' + py.NamaPenerima + ' (' + (py.Wilayah || '-') + ') - ' + py.ItemBantuan).setBold(true);
-      var table = body.appendTable();
-      var tr = table.appendTableRow();
-      var tdFoto = tr.appendTableCell().setWidth(250);
-      var tdKwitansi = tr.appendTableCell().setWidth(250);
-      table.setBorderWidth(0);
+      html += '<div class="card"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table><thead><tr><th>Penerima</th><th>Wilayah</th><th>Korwil</th><th>Nilai</th><th>Status</th></tr></thead><tbody>';
+      if (detail.penyaluran.length) {
+        detail.penyaluran.forEach(function (py) {
+          var statusBadge = py.Status === 'Selesai' ? '<span class="status-badge">Selesai ✓</span>' : '<span class="status-badge selesai">Menunggu Bukti</span>';
+          html += '<tr><td>' + py.NamaPenerima + '</td><td>' + (py.Wilayah || '-') + '</td><td>' + (py.PIC || '-') + '</td><td>' + formatRp(py.NilaiRp) + '</td><td>' + statusBadge + '</td></tr>';
+        });
+      } else {
+        html += '<tr><td colspan="5" class="empty">Belum ada penyaluran / jadwal untuk program ini.</td></tr>';
+      }
+      html += '</tbody></table></div></div>';
 
-      tdFoto.appendParagraph('Bukti Foto:');
-      if (py.BuktiFotoURL) {
-        var blobFoto = getBlobFromUrl_(py.BuktiFotoURL);
-        if (blobFoto) {
-          try {
-            var imgF = tdFoto.appendImage(blobFoto);
-            var maxW = 200;
-            if (imgF.getWidth() > maxW) {
-              imgF.setHeight(imgF.getHeight() * (maxW / imgF.getWidth()));
-              imgF.setWidth(maxW);
-            }
-          } catch(e) { tdFoto.appendParagraph('(Gagal memuat format gambar)'); }
-        } else { tdFoto.appendParagraph('(Link gambar tidak valid)'); }
-      } else { tdFoto.appendParagraph('-'); }
+      document.getElementById('detailContent').innerHTML = html;
+    }
 
-      tdKwitansi.appendParagraph('Kwitansi:');
-      if (py.KwitansiURL) {
-        var blobKwit = getBlobFromUrl_(py.KwitansiURL);
-        if (blobKwit) {
-          try {
-            var imgK = tdKwitansi.appendImage(blobKwit);
-            var maxW = 200;
-            if (imgK.getWidth() > maxW) {
-              imgK.setHeight(imgK.getHeight() * (maxW / imgK.getWidth()));
-              imgK.setWidth(maxW);
-            }
-          } catch(e) { tdKwitansi.appendParagraph('(Gagal memuat format gambar)'); }
-        } else { tdKwitansi.appendParagraph('(Link gambar tidak valid)'); }
-      } else { tdKwitansi.appendParagraph('-'); }
-      body.appendParagraph(' ');
+    function cetakLaporan(programId, btn) {
+      btn.disabled = true;
+      btn.textContent = 'Membuat PDF... (Bisa memakan waktu 10-15 detik)';
+      callBackend('generateLaporanPDF', { programId: programId }).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = '🖨️ Generate & Cetak Laporan PDF';
+        if (res.success) {
+          toast('Laporan PDF berhasil dibuat di Google Drive!');
+          window.open(res.url, '_blank');
+        } else {
+          showError(res);
+        }
+      });
+    }
+
+    // ---------- FORM: PROGRAM BARU & DONASI MASUK ----------
+    document.getElementById('formProgram').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = {
+        nama: document.getElementById('p_nama').value,
+        deskripsi: document.getElementById('p_deskripsi').value,
+        targetDana: document.getElementById('p_target').value,
+        tanggalMulai: document.getElementById('p_mulai').value,
+        tanggalSelesai: document.getElementById('p_selesai').value
+      };
+      callBackend('addProgram', data).then(function (res) {
+        if (res.success) {
+          toast('✅ Program berhasil dibuat! Silakan catat donasinya.');
+          e.target.reset();
+          loadProgramOptions(); // Segarkan dropdown
+        } else { showError(res); }
+      });
     });
-  }
 
-  body.appendParagraph('Dicetak pada: ' + Utilities.formatDate(new Date(), 'GMT+7', 'dd MMMM yyyy HH:mm')).setItalic(true);
-  doc.saveAndClose();
+    document.getElementById('formDonasi').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = {
+        programId: document.getElementById('d_program').value,
+        namaDonatur: document.getElementById('d_nama').value,
+        jumlah: document.getElementById('d_jumlah').value,
+        tanggal: document.getElementById('d_tanggal').value,
+        metode: document.getElementById('d_metode').value
+      };
+      callBackend('addDonasi', data).then(function (res) {
+        if (res.success) {
+          toast('✅ Donasi berhasil dimasukkan ke kas!');
+          e.target.reset();
+        } else { showError(res); }
+      });
+    });
 
-  var pdfBlob = DriveApp.getFileById(doc.getId()).getAs('application/pdf');
-  var pdfFile = folder.createFile(pdfBlob);
-  pdfFile.setName('LPJ - ' + p.Nama + '.pdf');
-  DriveApp.getFileById(doc.getId()).setTrashed(true);
+    // ---------- FORM: PENERIMA MANFAAT ----------
+    document.getElementById('formPenerima').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = {
+        nama: document.getElementById('pm_nama').value,
+        wilayah: document.getElementById('pm_wilayah').value,
+        sekolah: document.getElementById('pm_sekolah').value,
+        kelas: '', // Disatukan dengan input sekolah
+        umur: document.getElementById('pm_umur').value,
+        namaOrtuAlm: document.getElementById('pm_ortu').value,
+        kontak: document.getElementById('pm_kontak').value
+      };
+      callBackend('addPenerima', data).then(function (res) {
+        if (res.success) {
+          toast('✅ Anak Yatim berhasil didaftarkan!');
+          e.target.reset();
+          loadPenerimaTable();
+        } else { showError(res); }
+      });
+    });
 
-  return pdfFile.getUrl();
-}
+    function loadPenerimaTable() {
+      callBackend('getAllPenerima').then(function (res) {
+        if (!res.success) return;
+        var list = res.data;
+        var tbody = document.querySelector('#tabelPenerima tbody');
+        tbody.innerHTML = '';
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada data anak.</td></tr>';
+          return;
+        }
+        list.forEach(function (pm) {
+          tbody.innerHTML += '<tr><td>' + pm.Nama + '</td><td>' + (pm.Wilayah || '-') + '</td><td>' + (pm.Sekolah || '-') + '</td><td>' + (pm.NamaOrtuAlm || '-') + '</td></tr>';
+        });
+      });
+    }
+
+    // ---------- FORM: JADWAL DISTRIBUSI ----------
+    document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var select = document.getElementById('py_penerima');
+      var namaPenerima = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+      var data = {
+        programId: document.getElementById('py_program').value,
+        penerimaId: select.value,
+        namaPenerima: namaPenerima,
+        wilayah: document.getElementById('py_wilayah').value,
+        pic: document.getElementById('py_pic').value,
+        itemBantuan: document.getElementById('py_item').value,
+        nilaiRp: document.getElementById('py_nilai').value,
+        tanggalJadwal: document.getElementById('py_tanggal').value
+      };
+      callBackend('addPenyaluran', data).then(function (res) {
+        if (res.success) {
+          toast('✅ Jadwal pembagian berhasil dibuat!');
+          e.target.reset();
+          loadTerjadwal(); // Langsung perbarui tabel di bawahnya
+        } else { showError(res); }
+      });
+    });
+
+    // ---------- TABEL DISTRIBUSI TERJADWAL & UPLOAD FILE ----------
+    function loadTerjadwal() {
+      var wrap = document.getElementById('listTerjadwal');
+      wrap.innerHTML = '<p class="empty">Memuat data penjadwalan...</p>';
+      callBackend('getDashboardData').then(function (res) {
+        if (!res.success) { showError(res); return; }
+        var programs = res.data;
+        var ids = programs.map(function (p) { return p.id; });
+        if (!ids.length) { wrap.innerHTML = '<p class="empty">Belum ada program yang dijadwalkan.</p>'; return; }
+        var results = [];
+        var count = 0;
+        ids.forEach(function (pid) {
+          callBackend('getProgramDetail', { programId: pid }).then(function (detailRes) {
+            count++;
+            if (detailRes.success) {
+              (detailRes.data.penyaluran || []).forEach(function (py) {
+                if (py.Status !== 'Selesai') results.push(py);
+              });
+            }
+            if (count === ids.length) renderTerjadwal(results);
+          });
+        });
+      });
+    }
+
+    function renderTerjadwal(list) {
+      var wrap = document.getElementById('listTerjadwal');
+      if (!list.length) {
+        wrap.innerHTML = '<p class="empty">Semua bantuan sudah dibagikan. Bersih! 🎉</p>';
+        return;
+      }
+      var html = '<table><thead><tr><th>Penerima</th><th>Wilayah & Korwil</th><th>Bantuan & Nilai</th><th>Rencana Tanggal</th><th>Aksi</th></tr></thead><tbody>';
+      list.forEach(function (py) {
+        html += '<tr>' +
+          '<td><b>' + py.NamaPenerima + '</b></td>' +
+          '<td>' + (py.Wilayah || '-') + '<br><span style="color:var(--muted);font-size:11px;">Oleh: ' + (py.PIC || '-') + '</span></td>' +
+          '<td>' + py.ItemBantuan + '<br><span style="color:var(--green);font-size:12px;font-weight:600;">' + formatRp(py.NilaiRp) + '</span></td>' +
+          '<td>' + fmtDate(py.TanggalJadwal) + '</td>' +
+          '<td><button class="btn small" onclick="openModalBukti(\'' + py.ID + '\')">📤 Unggah Bukti</button></td>' +
+          '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+
+    function openModalBukti(penyaluranId) {
+      document.getElementById('bk_id').value = penyaluranId;
+      document.getElementById('bk_tanggal').value = new Date().toISOString().split('T')[0]; // Auto set hari ini
+      document.getElementById('bk_foto').value = '';
+      document.getElementById('bk_kwitansi').value = '';
+      document.getElementById('modalBukti').style.display = 'block';
+      document.getElementById('modalOverlay').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('modalBukti').style.display = 'none';
+      document.getElementById('modalOverlay').style.display = 'none';
+    }
+
+    // FUNGSI HELPER: BACA FILE SEBAGAI BASE64
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) { resolve(null); return; }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve({ base64: base64String, mime: file.type, name: file.name });
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('formBukti').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitBukti');
+      btn.disabled = true;
+      btn.textContent = 'Mengunggah Data... (Mohon Tunggu)';
+
+      try {
+        const fotoFile = document.getElementById('bk_foto').files[0];
+        const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
+        const fotoData = await readFileAsBase64(fotoFile);
+        const kwitansiData = await readFileAsBase64(kwitansiFile);
+
+        var data = {
+          penyaluranId: document.getElementById('bk_id').value,
+          tanggalRealisasi: document.getElementById('bk_tanggal').value,
+          fotoBase64: fotoData ? fotoData.base64 : '',
+          fotoMime: fotoData ? fotoData.mime : '',
+          fotoName: fotoData ? fotoData.name : '',
+          kwitansiBase64: kwitansiData ? kwitansiData.base64 : '',
+          kwitansiMime: kwitansiData ? kwitansiData.mime : '',
+          kwitansiName: kwitansiData ? kwitansiData.name : ''
+        };
+
+        callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Unggah & Selesaikan';
+          if (res.success) {
+            toast('✅ Bukti berhasil disimpan ke Drive & Distribusi Selesai!');
+            closeModal();
+            loadTerjadwal();
+          } else { showError(res); }
+        });
+      } catch (error) {
+        btn.disabled = false;
+        btn.textContent = 'Unggah & Selesaikan';
+        showError('Gagal membaca file gambar dari HP Anda.');
+      }
+    });
+
+    // ---------- SHARED LOADERS ----------
+    function loadProgramOptions() {
+      callBackend('getPrograms').then(function (res) {
+        if (!res.success) return;
+        ['d_program', 'py_program'].forEach(function (id) {
+          var sel = document.getElementById(id);
+          if (!sel) return;
+          sel.innerHTML = '<option value="">-- Pilih Program --</option>';
+          res.data.forEach(function (p) { sel.innerHTML += '<option value="' + p.ID + '">' + p.Nama + '</option>'; });
+        });
+      });
+    }
+
+    function loadPenerimaOptions() {
+      callBackend('getAllPenerima').then(function (res) {
+        if (!res.success) return;
+        var sel = document.getElementById('py_penerima');
+        sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
+        res.data.forEach(function (pm) { sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>'; });
+      });
+    }
+
+    // ---------- INIT START ----------
+    loadDashboard();
+  </script>
+</body>
+</html>
