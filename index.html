@@ -414,18 +414,49 @@
     // ---------- FORM: PROGRAM BARU ----------
     document.getElementById('formProgram').addEventListener('submit', function (e) {
       e.preventDefault();
-      var data = {
-        nama: document.getElementById('p_nama').value,
-        deskripsi: document.getElementById('p_deskripsi').value,
-        targetDana: document.getElementById('p_target').value,
-        tanggalMulai: document.getElementById('p_mulai').value,
-        tanggalSelesai: document.getElementById('p_selesai').value
-      };
-      google.script.run.withSuccessHandler(function () {
-        toast('Program berhasil dibuat!');
-        e.target.reset();
-        showView('dashboard');
-      }).withFailureHandler(showError).addProgram(data);
+      
+      var btn = e.target.querySelector('button[type="submit"]');
+      var originalText = btn.textContent;
+      
+      // UI Feedback: Cegah klik ganda dan beri indikator proses
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        var data = {
+          nama: document.getElementById('p_nama').value,
+          deskripsi: document.getElementById('p_deskripsi').value,
+          targetDana: document.getElementById('p_target').value,
+          tanggalMulai: document.getElementById('p_mulai').value,
+          tanggalSelesai: document.getElementById('p_selesai').value
+        };
+
+        google.script.run
+          .withSuccessHandler(function () {
+            toast('Program berhasil dibuat!');
+            e.target.reset();
+            showView('dashboard');
+            
+            // Kembalikan tombol ke kondisi semula setelah sukses
+            btn.disabled = false;
+            btn.textContent = originalText;
+          })
+          .withFailureHandler(function (err) {
+            showError(err);
+            
+            // Kembalikan tombol ke kondisi semula jika terjadi ralat server
+            btn.disabled = false;
+            btn.textContent = originalText;
+          })
+          .addProgram(data);
+          
+      } catch (err) {
+        showError(err);
+        
+        // Kembalikan tombol jika terjadi ralat di sisi klien/browser
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     });
 
     // ---------- FORM: DONASI ----------
