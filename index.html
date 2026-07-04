@@ -781,6 +781,38 @@
     });
 
     // ---------- SHARED LOADERS ----------
+    // TAMBAHAN: fungsi ini sebelumnya dipanggil (saat buka menu "Data Penerima"
+    // dan setelah berhasil daftarkan penerima baru) tapi belum pernah dibuat,
+    // sehingga tabel "Database Penerima Manfaat" selalu kosong walau data
+    // sudah tersimpan di Sheet.
+    function loadPenerimaTable() {
+      var tbody = document.querySelector('#tabelPenerima tbody');
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">Memuat data...</td></tr>';
+      callBackend('getAllPenerima').then(function (res) {
+        if (!res.success) { showError(res); return; }
+        renderPenerimaTable(res.data);
+      });
+    }
+
+    function renderPenerimaTable(list) {
+      var tbody = document.querySelector('#tabelPenerima tbody');
+      if (!list || !list.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada data penerima manfaat.</td></tr>';
+        return;
+      }
+      var html = '';
+      list.forEach(function (pm) {
+        var sekolahKelas = (pm.Sekolah || '-') + (pm.Kelas ? ' (' + pm.Kelas + ')' : '');
+        html += '<tr>' +
+          '<td>' + (pm.Nama || '-') + '</td>' +
+          '<td>' + (pm.Wilayah || '-') + '</td>' +
+          '<td>' + sekolahKelas + '</td>' +
+          '<td>' + (pm.NamaOrtuAlm || '-') + '</td>' +
+          '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
     function loadProgramOptions() {
       callBackend('getPrograms').then(function (res) {
         if (!res.success) return;
