@@ -463,6 +463,11 @@
     // ---------- FORM: PROGRAM BARU & DONASI MASUK ----------
     document.getElementById('formProgram').addEventListener('submit', function (e) {
       e.preventDefault();
+      var btn = e.target.querySelector('button[type="submit"]');
+      var originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
       var data = {
         nama: document.getElementById('p_nama').value,
         deskripsi: document.getElementById('p_deskripsi').value,
@@ -470,17 +475,29 @@
         tanggalMulai: document.getElementById('p_mulai').value,
         tanggalSelesai: document.getElementById('p_selesai').value
       };
+      
       callBackend('addProgram', data).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = originalText;
         if (res.success) {
           toast('✅ Program berhasil dibuat! Silakan catat donasinya.');
           e.target.reset();
           loadProgramOptions(); // Segarkan dropdown
         } else { showError(res); }
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showError(err);
       });
     });
 
     document.getElementById('formDonasi').addEventListener('submit', function (e) {
       e.preventDefault();
+      var btn = e.target.querySelector('button[type="submit"]');
+      var originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
       var data = {
         programId: document.getElementById('d_program').value,
         namaDonatur: document.getElementById('d_nama').value,
@@ -488,17 +505,29 @@
         tanggal: document.getElementById('d_tanggal').value,
         metode: document.getElementById('d_metode').value
       };
+      
       callBackend('addDonasi', data).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = originalText;
         if (res.success) {
           toast('✅ Donasi berhasil dimasukkan ke kas!');
           e.target.reset();
         } else { showError(res); }
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showError(err);
       });
     });
 
     // ---------- FORM: PENERIMA MANFAAT ----------
     document.getElementById('formPenerima').addEventListener('submit', function (e) {
       e.preventDefault();
+      var btn = e.target.querySelector('button[type="submit"]');
+      var originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Mendaftarkan...';
+
       var data = {
         nama: document.getElementById('pm_nama').value,
         wilayah: document.getElementById('pm_wilayah').value,
@@ -508,34 +537,30 @@
         namaOrtuAlm: document.getElementById('pm_ortu').value,
         kontak: document.getElementById('pm_kontak').value
       };
+      
       callBackend('addPenerima', data).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = originalText;
         if (res.success) {
           toast('✅ Anak Yatim berhasil didaftarkan!');
           e.target.reset();
           loadPenerimaTable();
         } else { showError(res); }
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showError(err);
       });
     });
-
-    function loadPenerimaTable() {
-      callBackend('getAllPenerima').then(function (res) {
-        if (!res.success) return;
-        var list = res.data;
-        var tbody = document.querySelector('#tabelPenerima tbody');
-        tbody.innerHTML = '';
-        if (!list.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada data anak.</td></tr>';
-          return;
-        }
-        list.forEach(function (pm) {
-          tbody.innerHTML += '<tr><td>' + pm.Nama + '</td><td>' + (pm.Wilayah || '-') + '</td><td>' + (pm.Sekolah || '-') + '</td><td>' + (pm.NamaOrtuAlm || '-') + '</td></tr>';
-        });
-      });
-    }
 
     // ---------- FORM: JADWAL DISTRIBUSI ----------
     document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
       e.preventDefault();
+      var btn = e.target.querySelector('button[type="submit"]');
+      var originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Menjadwalkan...';
+
       var select = document.getElementById('py_penerima');
       var namaPenerima = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
       var data = {
@@ -548,12 +573,19 @@
         nilaiRp: document.getElementById('py_nilai').value,
         tanggalJadwal: document.getElementById('py_tanggal').value
       };
+      
       callBackend('addPenyaluran', data).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = originalText;
         if (res.success) {
           toast('✅ Jadwal pembagian berhasil dibuat!');
           e.target.reset();
           loadTerjadwal(); // Langsung perbarui tabel di bawahnya
         } else { showError(res); }
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showError(err);
       });
     });
 
