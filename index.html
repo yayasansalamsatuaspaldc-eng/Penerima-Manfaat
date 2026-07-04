@@ -225,19 +225,19 @@
       </div>
     </div>
 
-    <!-- MODAL LENGKAPI BUKTI -->
+    <!-- MODAL LENGKAPI BUKTI (Diperbarui dengan Upload File) -->
     <div class="card" id="modalBukti" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:90%; max-width:420px; z-index:50; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
       <h3>Lengkapi Bukti Distribusi</h3>
       <form id="formBukti">
         <input type="hidden" id="bk_id">
         <label>Tanggal Realisasi</label>
         <input type="date" id="bk_tanggal" required>
-        <label>Link Bukti Foto</label>
-        <input type="text" id="bk_foto" placeholder="Link Google Drive foto" required>
-        <label>Link/No. Kwitansi</label>
-        <input type="text" id="bk_kwitansi" placeholder="Link Google Drive kwitansi" required>
+        <label>Upload Bukti Foto (Dari Galeri HP)</label>
+        <input type="file" id="bk_foto" accept="image/*" required>
+        <label>Upload Kwitansi (Dari Galeri HP)</label>
+        <input type="file" id="bk_kwitansi" accept="image/*" required>
         <div class="actions">
-          <button type="submit" class="btn">Simpan Bukti</button>
+          <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Simpan Bukti</button>
           <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
         </div>
       </form>
@@ -588,23 +588,64 @@
       document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    document.getElementById('formBukti').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var data = {
-        penyaluranId: document.getElementById('bk_id').value,
-        tanggalRealisasi: document.getElementById('bk_tanggal').value,
-        buktiFotoUrl: document.getElementById('bk_foto').value,
-        kwitansiUrl: document.getElementById('bk_kwitansi').value
-      };
-      callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
-        if (res.success) {
-          toast('Bukti berhasil disimpan, distribusi selesai!');
-          closeModal();
-          loadTerjadwal();
-        } else {
-          showError(res);
-        }
+    // ---------- FUNGSI HELPER: BACA FILE SEBAGAI BASE64 ----------
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) { resolve(null); return; }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve({ base64: base64String, mime: file.type, name: file.name });
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
       });
+    }
+
+    // ---------- FORM: BUKTI DISTRIBUSI & UPLOAD FILE ----------
+    document.getElementById('formBukti').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      
+      const btn = document.getElementById('btnSubmitBukti');
+      btn.disabled = true;
+      btn.textContent = 'Sedang Mengunggah... (Mohon Tunggu)';
+
+      try {
+        const fotoFile = document.getElementById('bk_foto').files[0];
+        const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
+
+        // Konversi file gambar ke Base64
+        const fotoData = await readFileAsBase64(fotoFile);
+        const kwitansiData = await readFileAsBase64(kwitansiFile);
+
+        var data = {
+          penyaluranId: document.getElementById('bk_id').value,
+          tanggalRealisasi: document.getElementById('bk_tanggal').value,
+          fotoBase64: fotoData ? fotoData.base64 : '',
+          fotoMime: fotoData ? fotoData.mime : '',
+          fotoName: fotoData ? fotoData.name : '',
+          kwitansiBase64: kwitansiData ? kwitansiData.base64 : '',
+          kwitansiMime: kwitansiData ? kwitansiData.mime : '',
+          kwitansiName: kwitansiData ? kwitansiData.name : ''
+        };
+
+        // Kirim data Base64 ke Backend Apps Script
+        callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Unggah & Simpan Bukti';
+          if (res.success) {
+            toast('Bukti berhasil diunggah dan disimpan!');
+            closeModal();
+            loadTerjadwal(); // Segarkan tampilan
+          } else {
+            showError(res);
+          }
+        });
+      } catch (error) {
+        btn.disabled = false;
+        btn.textContent = 'Unggah & Simpan Bukti';
+        showError('Gagal membaca file gambar dari perangkat Anda.');
+      }
     });
 
     // ---------- FORM: PENERIMA MANFAAT ----------
