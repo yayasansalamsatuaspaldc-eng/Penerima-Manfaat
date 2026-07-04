@@ -96,7 +96,7 @@
       width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
     }
     form textarea { resize: vertical; min-height: 60px; }
-    
+
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; min-width: 600px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
@@ -107,12 +107,31 @@
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px;
       opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 9999;
+      max-width: 90%; text-align: center;
     }
     .toast.show { opacity: 1; }
     .back-link { color: var(--primary); font-size: 13px; cursor: pointer; margin-bottom: 15px; display: inline-block; font-weight: 500; }
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; text-align: center; margin: 14px 0; }
     .summary-grid div { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
     .summary-grid div b { display: block; font-size: 16px; color: var(--primary-dark); margin-bottom: 4px; }
+
+    /* ====== TAMBAHAN: LOADING OVERLAY ANTI DOUBLE-SUBMIT ====== */
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px; z-index: 99999;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-spinner {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.25); border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay p {
+      color: white; font-size: 14px; font-weight: 600; margin: 0;
+      text-align: center; padding: 0 20px;
+    }
   </style>
 </head>
 <body>
@@ -296,6 +315,12 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- TAMBAHAN: overlay loading global -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p id="loadingText">Menyimpan data, mohon tunggu...</p>
+  </div>
+
   <script>
     // ---------- KONFIGURASI BACKEND (Apps Script) ----------
     // PENTING: Ganti dengan URL hasil "New deployment" terbaru dari Apps Script.
@@ -339,7 +364,7 @@
     function showView(name) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById('view-' + name).classList.add('active');
-      
+
       document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
       var navBtn = document.querySelector('#nav button[data-view="' + name + '"]');
       if (navBtn) navBtn.classList.add('active');
@@ -376,6 +401,55 @@
       var d = new Date(v);
       if (isNaN(d.getTime())) return v;
       return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    // ====== TAMBAHAN: LOADING OVERLAY + PENGUNCI ANTI DOUBLE-SUBMIT ======
+    // isSubmitting mengunci SEMUA form sekaligus. Jadi walaupun tombol
+    // sempat ke-klik dua kali dengan sangat cepat (atau di HP kadang event
+    // "tap" bisa terdaftar 2x), permintaan kedua akan otomatis diabaikan.
+    var isSubmitting = false;
+
+    function showLoading(msg) {
+      document.getElementById('loadingText').textContent = msg || 'Menyimpan data, mohon tunggu...';
+      document.getElementById('loadingOverlay').classList.add('show');
+    }
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+
+    // Bungkus proses submit form supaya konsisten: kunci saat mulai,
+    // lepas kunci + sembunyikan overlay + kembalikan tombol APAPUN hasilnya
+    // (sukses, gagal, atau error jaringan) menggunakan finally().
+    function handleFormSubmit(opts) {
+      // opts: { form, loadingMsg, buildData, action, successMsg, onSuccess }
+      if (isSubmitting) {
+        toast('⏳ Mohon tunggu, permintaan sebelumnya sedang diproses...');
+        return;
+      }
+      isSubmitting = true;
+
+      var btn = opts.form.querySelector('button[type="submit"]');
+      var originalText = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+      showLoading(opts.loadingMsg);
+
+      var data = opts.buildData();
+
+      callBackend(opts.action, data).then(function (res) {
+        if (res.success) {
+          toast(opts.successMsg);
+          opts.form.reset();
+          if (opts.onSuccess) opts.onSuccess(res);
+        } else {
+          showError(res);
+        }
+      }).catch(function (err) {
+        showError(err);
+      }).finally(function () {
+        if (btn) { btn.disabled = false; btn.textContent = originalText; }
+        hideLoading();
+        isSubmitting = false;
+      });
     }
 
     // ---------- DASHBOARD & LAPORAN ----------
@@ -463,129 +537,95 @@
     // ---------- FORM: PROGRAM BARU & DONASI MASUK ----------
     document.getElementById('formProgram').addEventListener('submit', function (e) {
       e.preventDefault();
-      var btn = e.target.querySelector('button[type="submit"]');
-      var originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-
-      var data = {
-        nama: document.getElementById('p_nama').value,
-        deskripsi: document.getElementById('p_deskripsi').value,
-        targetDana: document.getElementById('p_target').value,
-        tanggalMulai: document.getElementById('p_mulai').value,
-        tanggalSelesai: document.getElementById('p_selesai').value
-      };
-      
-      callBackend('addProgram', data).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        if (res.success) {
-          toast('✅ Program berhasil dibuat! Silakan catat donasinya.');
-          e.target.reset();
+      handleFormSubmit({
+        form: e.target,
+        loadingMsg: 'Menyimpan program...',
+        action: 'addProgram',
+        successMsg: '✅ Program berhasil dibuat! Silakan catat donasinya.',
+        buildData: function () {
+          return {
+            nama: document.getElementById('p_nama').value,
+            deskripsi: document.getElementById('p_deskripsi').value,
+            targetDana: document.getElementById('p_target').value,
+            tanggalMulai: document.getElementById('p_mulai').value,
+            tanggalSelesai: document.getElementById('p_selesai').value
+          };
+        },
+        onSuccess: function () {
           loadProgramOptions(); // Segarkan dropdown
-        } else { showError(res); }
-      }).catch(function (err) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        showError(err);
+        }
       });
     });
 
     document.getElementById('formDonasi').addEventListener('submit', function (e) {
       e.preventDefault();
-      var btn = e.target.querySelector('button[type="submit"]');
-      var originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-
-      var data = {
-        programId: document.getElementById('d_program').value,
-        namaDonatur: document.getElementById('d_nama').value,
-        jumlah: document.getElementById('d_jumlah').value,
-        tanggal: document.getElementById('d_tanggal').value,
-        metode: document.getElementById('d_metode').value
-      };
-      
-      callBackend('addDonasi', data).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        if (res.success) {
-          toast('✅ Donasi berhasil dimasukkan ke kas!');
-          e.target.reset();
-        } else { showError(res); }
-      }).catch(function (err) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        showError(err);
+      handleFormSubmit({
+        form: e.target,
+        loadingMsg: 'Menyimpan donasi...',
+        action: 'addDonasi',
+        successMsg: '✅ Donasi berhasil dimasukkan ke kas!',
+        buildData: function () {
+          return {
+            programId: document.getElementById('d_program').value,
+            namaDonatur: document.getElementById('d_nama').value,
+            jumlah: document.getElementById('d_jumlah').value,
+            tanggal: document.getElementById('d_tanggal').value,
+            metode: document.getElementById('d_metode').value
+          };
+        }
       });
     });
 
     // ---------- FORM: PENERIMA MANFAAT ----------
     document.getElementById('formPenerima').addEventListener('submit', function (e) {
       e.preventDefault();
-      var btn = e.target.querySelector('button[type="submit"]');
-      var originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Mendaftarkan...';
-
-      var data = {
-        nama: document.getElementById('pm_nama').value,
-        wilayah: document.getElementById('pm_wilayah').value,
-        sekolah: document.getElementById('pm_sekolah').value,
-        kelas: '', // Disatukan dengan input sekolah
-        umur: document.getElementById('pm_umur').value,
-        namaOrtuAlm: document.getElementById('pm_ortu').value,
-        kontak: document.getElementById('pm_kontak').value
-      };
-      
-      callBackend('addPenerima', data).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        if (res.success) {
-          toast('✅ Anak Yatim berhasil didaftarkan!');
-          e.target.reset();
+      handleFormSubmit({
+        form: e.target,
+        loadingMsg: 'Mendaftarkan anak yatim...',
+        action: 'addPenerima',
+        successMsg: '✅ Anak Yatim berhasil didaftarkan!',
+        buildData: function () {
+          return {
+            nama: document.getElementById('pm_nama').value,
+            wilayah: document.getElementById('pm_wilayah').value,
+            sekolah: document.getElementById('pm_sekolah').value,
+            kelas: '', // Disatukan dengan input sekolah
+            umur: document.getElementById('pm_umur').value,
+            namaOrtuAlm: document.getElementById('pm_ortu').value,
+            kontak: document.getElementById('pm_kontak').value
+          };
+        },
+        onSuccess: function () {
           loadPenerimaTable();
-        } else { showError(res); }
-      }).catch(function (err) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        showError(err);
+        }
       });
     });
 
     // ---------- FORM: JADWAL DISTRIBUSI ----------
     document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
       e.preventDefault();
-      var btn = e.target.querySelector('button[type="submit"]');
-      var originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Menjadwalkan...';
-
-      var select = document.getElementById('py_penerima');
-      var namaPenerima = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
-      var data = {
-        programId: document.getElementById('py_program').value,
-        penerimaId: select.value,
-        namaPenerima: namaPenerima,
-        wilayah: document.getElementById('py_wilayah').value,
-        pic: document.getElementById('py_pic').value,
-        itemBantuan: document.getElementById('py_item').value,
-        nilaiRp: document.getElementById('py_nilai').value,
-        tanggalJadwal: document.getElementById('py_tanggal').value
-      };
-      
-      callBackend('addPenyaluran', data).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        if (res.success) {
-          toast('✅ Jadwal pembagian berhasil dibuat!');
-          e.target.reset();
+      handleFormSubmit({
+        form: e.target,
+        loadingMsg: 'Menjadwalkan bantuan...',
+        action: 'addPenyaluran',
+        successMsg: '✅ Jadwal pembagian berhasil dibuat!',
+        buildData: function () {
+          var select = document.getElementById('py_penerima');
+          var namaPenerima = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+          return {
+            programId: document.getElementById('py_program').value,
+            penerimaId: select.value,
+            namaPenerima: namaPenerima,
+            wilayah: document.getElementById('py_wilayah').value,
+            pic: document.getElementById('py_pic').value,
+            itemBantuan: document.getElementById('py_item').value,
+            nilaiRp: document.getElementById('py_nilai').value,
+            tanggalJadwal: document.getElementById('py_tanggal').value
+          };
+        },
+        onSuccess: function () {
           loadTerjadwal(); // Langsung perbarui tabel di bawahnya
-        } else { showError(res); }
-      }).catch(function (err) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        showError(err);
+        }
       });
     });
 
@@ -664,9 +704,18 @@
 
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
+
+      if (isSubmitting) {
+        toast('⏳ Mohon tunggu, permintaan sebelumnya sedang diproses...');
+        return;
+      }
+      isSubmitting = true;
+
       const btn = document.getElementById('btnSubmitBukti');
+      const originalText = btn.textContent;
       btn.disabled = true;
       btn.textContent = 'Mengunggah Data... (Mohon Tunggu)';
+      showLoading('Mengunggah bukti foto & kwitansi...');
 
       try {
         const fotoFile = document.getElementById('bk_foto').files[0];
@@ -686,17 +735,24 @@
         };
 
         callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
-          btn.disabled = false;
-          btn.textContent = 'Unggah & Selesaikan';
           if (res.success) {
             toast('✅ Bukti berhasil disimpan ke Drive & Distribusi Selesai!');
             closeModal();
             loadTerjadwal();
           } else { showError(res); }
+        }).catch(function (err) {
+          showError(err);
+        }).finally(function () {
+          btn.disabled = false;
+          btn.textContent = originalText;
+          hideLoading();
+          isSubmitting = false;
         });
       } catch (error) {
         btn.disabled = false;
-        btn.textContent = 'Unggah & Selesaikan';
+        btn.textContent = originalText;
+        hideLoading();
+        isSubmitting = false;
         showError('Gagal membaca file gambar dari HP Anda.');
       }
     });
