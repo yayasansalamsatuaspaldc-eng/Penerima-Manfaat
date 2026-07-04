@@ -327,7 +327,12 @@
     var EXEC_URL = 'https://script.google.com/macros/s/AKfycbx9ZLzpHclODNe7KTsavhkvvSs4OvF2Wm8viUgPLMqBby3fMkKetti33WAtyFC5ueX7/exec';
 
     // Helper pemanggil backend dengan fetch (Bypass CORS)
-    function callBackend(action, payload) {
+    // TAMBAHAN: retry otomatis. Di PWA/WebView (Add to Home Screen), sesekali
+    // Google mengembalikan halaman HTML (bukan JSON) karena gangguan sesaat
+    // pada koneksi/sesi WebView -- padahal proses di server (Apps Script)
+    // biasanya tetap berhasil. Jadi sebelum benar-benar dianggap gagal,
+    // kita coba ulang beberapa kali dulu secara diam-diam.
+    function callBackendOnce(action, payload) {
       return fetch(EXEC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -348,10 +353,25 @@
               throw new Error('Server mengembalikan respons tidak valid (404/Redirect gagal).');
             }
           }
-        })
-        .catch(function (err) {
-          return { success: false, message: 'Gagal menghubungi server: ' + err.message };
         });
+    }
+
+    function delay(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
+
+    function callBackend(action, payload, attempt) {
+      attempt = attempt || 1;
+      var MAX_ATTEMPT = 3;
+      return callBackendOnce(action, payload).catch(function (err) {
+        if (attempt < MAX_ATTEMPT) {
+          console.warn('Percobaan ke-' + attempt + ' gagal (' + err.message + '), mencoba ulang...');
+          return delay(1200 * attempt).then(function () {
+            return callBackend(action, payload, attempt + 1);
+          });
+        }
+        return { success: false, message: 'Gagal menghubungi server: ' + err.message };
+      });
     }
 
     // ---------- NAVIGATION LOGIC (4 Menu Utama) ----------
