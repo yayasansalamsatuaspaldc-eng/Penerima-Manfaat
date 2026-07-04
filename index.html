@@ -294,10 +294,31 @@
     function callBackend(action, payload) {
       return fetch(EXEC_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: action, payload: payload || {} })
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: action, payload: payload || {} }),
+        redirect: 'follow'
       })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+          // Ambil respons sebagai teks terlebih dahulu untuk divalidasi
+          return res.text();
+        })
+        .then(function (text) {
+          try {
+            // Mencoba parse respons menjadi objek JSON
+            return JSON.parse(text);
+          } catch (e) {
+            // Jika server mengembalikan HTML atau teks doGet (Bukan JSON)
+            console.error('Respons server tidak valid:', text);
+            
+            if (text.includes('<!DOCTYPE') || text.toLowerCase().includes('<html')) {
+              throw new Error('Akses ditolak oleh Google. Pastikan "Who has access" diset ke "Anyone" saat deploy.');
+            } else if (text.includes('Backend API')) {
+              throw new Error('Salah endpoint (memanggil doGet). Pastikan URL menggunakan hasil "New deployment" terbaru.');
+            } else {
+              throw new Error('Server mengembalikan respons tidak valid (404 atau Redirect gagal).');
+            }
+          }
+        })
         .catch(function (err) {
           return { success: false, message: 'Gagal menghubungi server: ' + err.message };
         });
