@@ -648,6 +648,7 @@
         },
         onSuccess: function () {
           loadTerjadwal(); // Langsung perbarui tabel di bawahnya
+          loadPenerimaOptions(); // Anak yang baru dijadwalkan hilang dari dropdown
         }
       });
     });
@@ -768,6 +769,7 @@
             toast('✅ Bukti berhasil disimpan ke Drive & Distribusi Selesai!');
             closeModal();
             loadTerjadwal();
+            loadPenerimaOptions(); // Anak ini bisa muncul lagi untuk dijadwalkan bantuan baru
           } else { showError(res); }
         }).catch(function (err) {
           showError(err);
@@ -831,12 +833,47 @@
       });
     }
 
+    // TAMBAHAN: kumpulkan nama-nama penerima yang statusnya masih "menunggu
+    // bukti" (belum Selesai) di SEMUA program, supaya bisa disaring dari
+    // dropdown "Pilih Anak Penerima" -- mencegah anak yang sama dijadwalkan
+    // dobel sebelum bantuan sebelumnya selesai.
+    function getPendingPenerimaNames() {
+      return callBackend('getDashboardData').then(function (res) {
+        if (!res.success) return [];
+        var ids = res.data.map(function (p) { return p.id; });
+        if (!ids.length) return [];
+        return Promise.all(ids.map(function (pid) {
+          return callBackend('getProgramDetail', { programId: pid });
+        })).then(function (results) {
+          var names = [];
+          results.forEach(function (detailRes) {
+            if (detailRes.success) {
+              (detailRes.data.penyaluran || []).forEach(function (py) {
+                if (py.Status !== 'Selesai') names.push(py.NamaPenerima);
+              });
+            }
+          });
+          return names;
+        });
+      });
+    }
+
     function loadPenerimaOptions() {
-      callBackend('getAllPenerima').then(function (res) {
-        if (!res.success) return;
-        var sel = document.getElementById('py_penerima');
-        sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
-        res.data.forEach(function (pm) { sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>'; });
+      var sel = document.getElementById('py_penerima');
+      sel.innerHTML = '<option value="">-- Memuat data... --</option>';
+      getPendingPenerimaNames().then(function (pendingNames) {
+        callBackend('getAllPenerima').then(function (res) {
+          if (!res.success) return;
+          sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
+          res.data.forEach(function (pm) {
+            if (pendingNames.indexOf(pm.Nama) === -1) {
+              sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>';
+            }
+          });
+          if (!res.data.length || res.data.every(function (pm) { return pendingNames.indexOf(pm.Nama) !== -1; })) {
+            sel.innerHTML += '<option value="" disabled>(Semua anak sedang menunggu bukti bantuan sebelumnya)</option>';
+          }
+        });
       });
     }
 
