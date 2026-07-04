@@ -303,9 +303,9 @@
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
         <label>Upload Bukti Foto (Dari Galeri HP)</label>
-        <input type="file" id="bk_foto" accept="image/*" required>
+        <input type="file" id="bk_foto" accept="image/*">
         <label>Upload Kwitansi (Dari Galeri HP)</label>
-        <input type="file" id="bk_kwitansi" accept="image/*" required>
+        <input type="file" id="bk_kwitansi" accept="image/*">
         <div class="actions" style="margin-top: 20px;">
           <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
           <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
@@ -728,6 +728,14 @@
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
+      const fotoFile = document.getElementById('bk_foto').files[0];
+      const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
+
+      if (!fotoFile && !kwitansiFile) {
+        toast('❌ Isi minimal salah satu: Bukti Foto atau Kwitansi.');
+        return;
+      }
+
       if (isSubmitting) {
         toast('⏳ Mohon tunggu, permintaan sebelumnya sedang diproses...');
         return;
@@ -741,8 +749,6 @@
       showLoading('Mengunggah bukti foto & kwitansi...');
 
       try {
-        const fotoFile = document.getElementById('bk_foto').files[0];
-        const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
         const fotoData = await readFileAsBase64(fotoFile);
         const kwitansiData = await readFileAsBase64(kwitansiFile);
 
