@@ -159,6 +159,7 @@
       .laporan-table { font-size: 10.5px; }
       .laporan-table th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .laporan-table tr { page-break-inside: avoid; }
+      .card.card-table { page-break-inside: auto !important; }
     }
     .print-header { display: none; }
   </style>
@@ -598,7 +599,7 @@
         '<p style="margin:0; font-size:12px;"><b>Target Dana:</b> ' + formatRp(p.TargetDana) + '</p>' +
         '</div>';
 
-      html += '<div class="card"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
+      html += '<div class="card card-table"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
         '<th class="col-no">No</th><th>Penerima</th><th>Nilai / Status</th><th class="col-bukti">Bukti Kwitansi</th><th class="col-bukti">Bukti Foto</th>' +
         '</tr></thead><tbody>';
       if (detail.penyaluran.length) {
