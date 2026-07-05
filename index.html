@@ -133,6 +133,18 @@
       text-align: center; padding: 0 20px;
     }
 
+    /* ====== TAMBAHAN: TABEL LAPORAN PENERIMA (gaya kotak sesuai sketsa "Handler") ====== */
+    .laporan-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 10px; table-layout: fixed; }
+    .laporan-table th, .laporan-table td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; text-align: left; }
+    .laporan-table th { background: #f1f5f9; font-size: 11px; text-align: center; }
+    .laporan-table td.col-no { text-align: center; width: 26px; }
+    .laporan-table th.col-bukti, .laporan-table td.col-bukti { text-align: center; width: 78px; }
+    .laporan-table .field-line { margin: 0 0 3px; line-height: 1.35; }
+    .laporan-table .field-line:last-child { margin-bottom: 0; }
+    .laporan-table .field-line b { font-weight: 600; }
+    .laporan-table img.bukti-img { width: 68px; height: 68px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px; }
+    .laporan-table .no-bukti { color: #999; font-size: 10px; font-style: italic; }
+
     /* ====== TAMBAHAN: PENGATURAN CETAK PDF (FRONTEND) ====== */
     @media print {
       @page { size: A4 portrait; margin: 15mm; }
@@ -144,6 +156,9 @@
       .summary-grid div { flex: 1; margin: 0 5px; border: 1px solid #ccc !important; background: #fff !important; }
       .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px; }
       .status-badge { border: 1px solid #000 !important; color: #000 !important; background: transparent !important; }
+      .laporan-table { font-size: 10.5px; }
+      .laporan-table th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .laporan-table tr { page-break-inside: avoid; }
     }
     .print-header { display: none; }
   </style>
@@ -433,6 +448,20 @@
       toast('❌ Error: ' + msg);
     }
 
+    // Ubah link "view" Google Drive jadi link gambar langsung supaya bisa tampil di <img>
+    function driveDirectUrl_(url) {
+      if (!url) return null;
+      var match = url.match(/[-\w]{25,}/);
+      if (!match) return null;
+      return 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w300';
+    }
+
+    function buktiImgTag(url) {
+      var direct = driveDirectUrl_(url);
+      if (!direct) return '<span class="no-bukti">Belum ada</span>';
+      return '<img class="bukti-img" src="' + direct + '" alt="bukti" onerror="this.outerHTML=\'<span class=&quot;no-bukti&quot;>Gagal muat</span>\'">';
+    }
+
     function fmtDate(v) {
       if (!v) return '-';
       var d = new Date(v);
@@ -549,11 +578,30 @@
       html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + programId + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
       html += '</div>';
 
-      html += '<div class="card"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table><thead><tr><th>Penerima</th><th>Wilayah</th><th>Korwil</th><th>Nilai</th><th>Status</th></tr></thead><tbody>';
+      html += '<div class="card"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
+        '<th class="col-no">No</th><th>Penerima</th><th>Nilai / Status</th><th class="col-bukti">Bukti Kwitansi</th><th class="col-bukti">Bukti Foto</th>' +
+        '</tr></thead><tbody>';
       if (detail.penyaluran.length) {
-        detail.penyaluran.forEach(function (py) {
-          var statusBadge = py.Status === 'Selesai' ? '<span class="status-badge">Selesai ✓</span>' : '<span class="status-badge selesai">Menunggu Bukti</span>';
-          html += '<tr><td>' + py.NamaPenerima + '</td><td>' + (py.Wilayah || '-') + '</td><td>' + (py.PIC || '-') + '</td><td>' + formatRp(py.NilaiRp) + '</td><td>' + statusBadge + '</td></tr>';
+        detail.penyaluran.forEach(function (py, i) {
+          var tglSelesai = py.Status === 'Selesai' ? fmtDate(py.TanggalRealisasi) : '-';
+          html += '<tr>';
+          html += '<td class="col-no">' + (i + 1) + '</td>';
+          html += '<td>' +
+            '<p class="field-line"><b>Nama Anak Yatim:</b> ' + (py.NamaPenerima || '-') + '</p>' +
+            '<p class="field-line"><b>Wilayah:</b> ' + (py.Wilayah || '-') + '</p>' +
+            '<p class="field-line"><b>Sekolah &amp; Kelas:</b> ' + (py.Sekolah || '-') + (py.Kelas ? ' / ' + py.Kelas : '') + '</p>' +
+            '<p class="field-line"><b>Umur:</b> ' + (py.Umur || '-') + '</p>' +
+            '<p class="field-line"><b>Nama Orang Tua (Alm):</b> ' + (py.NamaOrtuAlm || '-') + '</p>' +
+            '<p class="field-line"><b>Kontak Wali (PIC):</b> ' + (py.PIC || '-') + '</p>' +
+            '</td>';
+          html += '<td>' +
+            '<p class="field-line"><b>Nilai:</b> ' + formatRp(py.NilaiRp) + '</p>' +
+            '<p class="field-line"><b>Status:</b> ' + (py.Status || '-') + '</p>' +
+            '<p class="field-line"><b>Tgl Selesai:</b> ' + tglSelesai + '</p>' +
+            '</td>';
+          html += '<td class="col-bukti">' + buktiImgTag(py.KwitansiURL) + '</td>';
+          html += '<td class="col-bukti">' + buktiImgTag(py.BuktiFotoURL) + '</td>';
+          html += '</tr>';
         });
       } else {
         html += '<tr><td colspan="5" class="empty">Belum ada penyaluran / jadwal untuk program ini.</td></tr>';
