@@ -581,16 +581,6 @@
       html += '<hr style="border:none; border-top:2px solid #000; margin:8px 0 0;">';
       html += '</div>';
 
-      html += '<div class="card">';
-      html += '<h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>';
-      html += '<div class="summary-grid">' +
-        '<div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div>' +
-        '<div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div>' +
-        '<div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>';
-      var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|]/g, '-').trim();
-      html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
-      html += '</div>';
-
       html += '<div class="card lpj-header-block">' +
         '<p style="text-align:center; font-weight:700; font-size:13px; letter-spacing:0.5px; margin:0 0 4px; color:#333;">LAPORAN PERTANGGUNGJAWABAN</p>' +
         '<h2 style="text-align:center; font-size:19px; margin:0 0 14px; color:#2c3e50;">' + p.Nama + '</h2>' +
@@ -628,6 +618,16 @@
         html += '<tr><td colspan="5" class="empty">Belum ada penyaluran / jadwal untuk program ini.</td></tr>';
       }
       html += '</tbody></table></div></div>';
+
+      var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|]/g, '-').trim();
+      html += '<div class="card">';
+      html += '<h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>';
+      html += '<div class="summary-grid">' +
+        '<div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div>' +
+        '<div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div>' +
+        '<div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>';
+      html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
+      html += '</div>';
 
       document.getElementById('detailContent').innerHTML = html;
     }
