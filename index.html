@@ -978,7 +978,9 @@
           sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
           res.data.forEach(function (pm) {
             if (pendingNames.indexOf(pm.Nama) === -1) {
-              sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>';
+              // TAMBAHAN: simpan Wilayah & Kontak Wali di data-attribute,
+              // supaya bisa dipakai untuk auto-isi form saat anak ini dipilih.
+              sel.innerHTML += '<option value="' + pm.ID + '" data-wilayah="' + (pm.Wilayah || '').replace(/"/g, '&quot;') + '" data-kontak="' + (pm.Kontak || '').replace(/"/g, '&quot;') + '">' + pm.Nama + '</option>';
             }
           });
           if (!res.data.length || res.data.every(function (pm) { return pendingNames.indexOf(pm.Nama) !== -1; })) {
@@ -987,6 +989,24 @@
         });
       });
     }
+
+    // TAMBAHAN: auto-isi Nama Korwil/PIC (dari Kontak Wali) dan Wilayah Distribusi
+    // (dari Wilayah) begitu anak penerima dipilih. Tetap bisa diedit manual
+    // jika datanya belum ada / perlu dikoreksi.
+    document.getElementById('py_penerima').addEventListener('change', function (e) {
+      var opt = e.target.options[e.target.selectedIndex];
+      if (!opt || !opt.value) return;
+
+      var wilayah = opt.getAttribute('data-wilayah') || '';
+      var kontak = opt.getAttribute('data-kontak') || '';
+
+      document.getElementById('py_wilayah').value = wilayah;
+      document.getElementById('py_pic').value = kontak;
+
+      if (!kontak) {
+        toast('ℹ️ Kontak Wali anak ini belum diisi saat pendaftaran, silakan isi PIC secara manual.');
+      }
+    });
 
     // ---------- INIT START ----------
     loadDashboard();
