@@ -318,7 +318,7 @@
 
       <div class="card">
         <h3>Daftar Bantuan Menunggu Bukti (Hari-H)</h3>
-        <p style="color:var(--muted); font-size:13px; margin-top:-6px;">Klik tombol "Unggah Bukti" pada hari-H pembagian kepada anak.</p>
+        <p style="color:var(--muted); font-size:13px; margin-top:-6px;">Klik tombol "Unggah Bukti" pada hari-H pembagian kepada anak. Yang sudah selesai tetap tampil di bawah sebagai catatan.</p>
         <div class="table-container" id="listTerjadwal">
           <p class="empty">Memuat data...</p>
         </div>
@@ -745,6 +745,8 @@
     });
 
     // ---------- TABEL DISTRIBUSI TERJADWAL & UPLOAD FILE ----------
+    // TAMBAHAN: sekarang menampilkan SEMUA status (Terjadwal & Selesai),
+    // sebelumnya baris yang statusnya "Selesai" langsung dibuang dari daftar ini.
     function loadTerjadwal() {
       var wrap = document.getElementById('listTerjadwal');
       wrap.innerHTML = '<p class="empty">Memuat data penjadwalan...</p>';
@@ -760,7 +762,7 @@
             count++;
             if (detailRes.success) {
               (detailRes.data.penyaluran || []).forEach(function (py) {
-                if (py.Status !== 'Selesai') results.push(py);
+                results.push(py);
               });
             }
             if (count === ids.length) renderTerjadwal(results);
@@ -769,20 +771,38 @@
       });
     }
 
+    // TAMBAHAN: yang statusnya "Selesai" tetap tampil di daftar ini, tapi
+    // kolom Aksi diganti jadi tulisan status saja (tidak ada gambar bukti).
+    // Yang masih menunggu (belum Selesai) diurutkan tampil lebih dulu di atas.
     function renderTerjadwal(list) {
       var wrap = document.getElementById('listTerjadwal');
       if (!list.length) {
-        wrap.innerHTML = '<p class="empty">Semua bantuan sudah dibagikan. Bersih! 🎉</p>';
+        wrap.innerHTML = '<p class="empty">Belum ada data penjadwalan bantuan.</p>';
         return;
       }
-      var html = '<table><thead><tr><th>Penerima</th><th>Wilayah & Korwil</th><th>Bantuan & Nilai</th><th>Rencana Tanggal</th><th>Aksi</th></tr></thead><tbody>';
+
+      list.sort(function (a, b) {
+        if (a.Status === b.Status) return 0;
+        return a.Status === 'Selesai' ? 1 : -1;
+      });
+
+      var html = '<table><thead><tr><th>Penerima</th><th>Wilayah & Korwil</th><th>Bantuan & Nilai</th><th>Rencana Tanggal</th><th>Status / Aksi</th></tr></thead><tbody>';
       list.forEach(function (py) {
+        var aksiCell;
+        if (py.Status === 'Selesai') {
+          aksiCell =
+            '<span style="color:var(--green); font-weight:600; font-size:12px;">✅ Bukti sudah diunggah</span>' +
+            '<br><span style="color:var(--muted); font-size:11px;">Realisasi: ' + fmtDate(py.TanggalRealisasi) + '</span>';
+        } else {
+          aksiCell = '<button class="btn small" onclick="openModalBukti(\'' + py.ID + '\')">📤 Unggah Bukti</button>';
+        }
+
         html += '<tr>' +
           '<td><b>' + py.NamaPenerima + '</b></td>' +
           '<td>' + (py.Wilayah || '-') + '<br><span style="color:var(--muted);font-size:11px;">Oleh: ' + (py.PIC || '-') + '</span></td>' +
           '<td>' + py.ItemBantuan + '<br><span style="color:var(--green);font-size:12px;font-weight:600;">' + formatRp(py.NilaiRp) + '</span></td>' +
           '<td>' + fmtDate(py.TanggalJadwal) + '</td>' +
-          '<td><button class="btn small" onclick="openModalBukti(\'' + py.ID + '\')">📤 Unggah Bukti</button></td>' +
+          '<td>' + aksiCell + '</td>' +
           '</tr>';
       });
       html += '</tbody></table>';
