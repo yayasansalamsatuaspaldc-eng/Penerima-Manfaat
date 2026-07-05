@@ -132,6 +132,20 @@
       color: white; font-size: 14px; font-weight: 600; margin: 0;
       text-align: center; padding: 0 20px;
     }
+
+    /* ====== TAMBAHAN: PENGATURAN CETAK PDF (FRONTEND) ====== */
+    @media print {
+      @page { size: A4 portrait; margin: 15mm; }
+      body { background: white !important; color: black !important; }
+      header, nav, .back-link, .actions, .toast, .loading-overlay { display: none !important; }
+      main { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+      .card { border: 1px solid #ccc !important; box-shadow: none !important; page-break-inside: avoid; }
+      .summary-grid { display: flex !important; justify-content: space-between !important; }
+      .summary-grid div { flex: 1; margin: 0 5px; border: 1px solid #ccc !important; background: #fff !important; }
+      .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px; }
+      .status-badge { border: 1px solid #000 !important; color: #000 !important; background: transparent !important; }
+    }
+    .print-header { display: none; }
   </style>
 </head>
 <body>
@@ -519,7 +533,14 @@
 
     function renderDetail(detail, programId) {
       var p = detail.program;
-      var html = '<div class="card">';
+      
+      // Tambahan Header Kop Surat Khusus untuk Cetak PDF
+      var html = '<div class="print-header">';
+      html += '<h1 style="margin:0; font-size:22px; text-transform:uppercase;">YAYASAN SALAM SATU ASPAL</h1>';
+      html += '<p style="margin:4px 0 0; font-size:12px;">Laporan Pemasukan & Penyaluran Dana Program Bantuan</p>';
+      html += '</div>';
+
+      html += '<div class="card">';
       html += '<h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>';
       html += '<div class="summary-grid">' +
         '<div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div>' +
@@ -543,18 +564,19 @@
     }
 
     function cetakLaporan(programId, btn) {
-      btn.disabled = true;
-      btn.textContent = 'Membuat PDF... (Bisa memakan waktu 10-15 detik)';
-      callBackend('generateLaporanPDF', { programId: programId }).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = '🖨️ Generate & Cetak Laporan PDF';
-        if (res.success) {
-          toast('Laporan PDF berhasil dibuat di Google Drive!');
-          window.open(res.url, '_blank');
-        } else {
-          showError(res);
-        }
-      });
+      // Menyimpan judul asli web
+      var originalTitle = document.title;
+      
+      // Mengubah judul tab sementara agar nama file PDF otomatis rapi saat didownload
+      document.title = "Laporan_Program_" + programId;
+      
+      // Memunculkan dialog cetak PDF bawaan browser secara instan
+      window.print();
+      
+      // Mengembalikan judul web ke aslinya setelah 1 detik
+      setTimeout(function() {
+        document.title = originalTitle;
+      }, 1000);
     }
 
     // ---------- FORM: PROGRAM BARU & DONASI MASUK ----------
