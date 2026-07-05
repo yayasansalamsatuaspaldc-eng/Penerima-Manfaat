@@ -137,12 +137,12 @@
     .laporan-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 10px; table-layout: fixed; }
     .laporan-table th, .laporan-table td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; text-align: left; }
     .laporan-table th { background: #f1f5f9; font-size: 11px; text-align: center; }
-    .laporan-table td.col-no { text-align: center; width: 26px; }
-    .laporan-table th.col-bukti, .laporan-table td.col-bukti { text-align: center; width: 78px; }
+    .laporan-table th.col-no, .laporan-table td.col-no { text-align: center; width: 18px; padding-left: 2px; padding-right: 2px; }
+    .laporan-table th.col-bukti, .laporan-table td.col-bukti { text-align: center; width: 130px; }
     .laporan-table .field-line { margin: 0 0 3px; line-height: 1.35; }
     .laporan-table .field-line:last-child { margin-bottom: 0; }
     .laporan-table .field-line b { font-weight: 600; }
-    .laporan-table img.bukti-img { width: 68px; height: 68px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px; }
+    .laporan-table img.bukti-img { width: 115px; height: 115px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px; }
     .laporan-table .no-bukti { color: #999; font-size: 10px; font-style: italic; }
 
     /* ====== TAMBAHAN: PENGATURAN CETAK PDF (FRONTEND) ====== */
@@ -575,7 +575,8 @@
         '<div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div>' +
         '<div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div>' +
         '<div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>';
-      html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + programId + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
+      var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|]/g, '-').trim();
+      html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
       html += '</div>';
 
       html += '<div class="card"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
@@ -611,16 +612,16 @@
       document.getElementById('detailContent').innerHTML = html;
     }
 
-    function cetakLaporan(programId, btn) {
+    function cetakLaporan(namaProgram, btn) {
       // Menyimpan judul asli web
       var originalTitle = document.title;
-      
-      // Mengubah judul tab sementara agar nama file PDF otomatis rapi saat didownload
-      document.title = "Laporan_Program_" + programId;
-      
+
+      // Mengubah judul tab sementara agar nama file PDF otomatis sesuai nama program
+      document.title = "Laporan LPJ - " + namaProgram;
+
       // Memunculkan dialog cetak PDF bawaan browser secara instan
       window.print();
-      
+
       // Mengembalikan judul web ke aslinya setelah 1 detik
       setTimeout(function() {
         document.title = originalTitle;
