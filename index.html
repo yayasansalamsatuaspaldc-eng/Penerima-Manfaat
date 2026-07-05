@@ -590,6 +590,14 @@
       html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
       html += '</div>';
 
+      html += '<div class="card lpj-header-block">' +
+        '<p style="text-align:center; font-weight:700; font-size:13px; letter-spacing:0.5px; margin:0 0 4px; color:#333;">LAPORAN PERTANGGUNGJAWABAN</p>' +
+        '<h2 style="text-align:center; font-size:19px; margin:0 0 14px; color:#2c3e50;">' + p.Nama + '</h2>' +
+        '<p style="margin:0 0 3px; font-size:12px;"><b>Deskripsi Program:</b> ' + (p.Deskripsi || '-') + '</p>' +
+        '<p style="margin:0 0 3px; font-size:12px;"><b>Periode:</b> ' + fmtDate(p.TanggalMulai) + '  s/d  ' + fmtDate(p.TanggalSelesai) + '</p>' +
+        '<p style="margin:0; font-size:12px;"><b>Target Dana:</b> ' + formatRp(p.TargetDana) + '</p>' +
+        '</div>';
+
       html += '<div class="card"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
         '<th class="col-no">No</th><th>Penerima</th><th>Nilai / Status</th><th class="col-bukti">Bukti Kwitansi</th><th class="col-bukti">Bukti Foto</th>' +
         '</tr></thead><tbody>';
