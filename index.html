@@ -332,10 +332,10 @@
         <input type="hidden" id="bk_id">
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
-        <label>Upload Bukti Foto (Dari Galeri HP)</label>
-        <input type="file" id="bk_foto" accept="image/*">
-        <label>Upload Kwitansi (Dari Galeri HP)</label>
-        <input type="file" id="bk_kwitansi" accept="image/*">
+        <label>Upload Bukti Foto (Bisa pilih lebih dari 1, maks 5)</label>
+        <input type="file" id="bk_foto" accept="image/*" multiple>
+        <label>Upload Kwitansi (Bisa pilih lebih dari 1, maks 5)</label>
+        <input type="file" id="bk_kwitansi" accept="image/*" multiple>
         <div class="actions" style="margin-top: 20px;">
           <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
           <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
@@ -457,10 +457,21 @@
       return 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w300';
     }
 
-    function buktiImgTag(url) {
-      var direct = driveDirectUrl_(url);
-      if (!direct) return '<span class="no-bukti">Belum ada</span>';
-      return '<img class="bukti-img" src="' + direct + '" alt="bukti" onerror="this.outerHTML=\'<span class=&quot;no-bukti&quot;>Gagal muat</span>\'">';
+    function buktiImgTag(urls) {
+      var list = (urls || []).filter(Boolean);
+      if (list.length === 0) return '<span class="no-bukti">Belum ada</span>';
+
+      var html = '<div style="display:flex; gap:4px; flex-wrap:wrap;">';
+      list.forEach(function (u) {
+        var direct = driveDirectUrl_(u);
+        if (direct) {
+          html += '<img class="bukti-img" src="' + direct + '" alt="bukti" ' +
+            'onclick="window.open(\'' + u + '\',\'_blank\')" style="cursor:pointer;" ' +
+            'onerror="this.remove()">';
+        }
+      });
+      html += '</div>';
+      return html;
     }
 
     function fmtDate(v) {
@@ -610,8 +621,10 @@
             '<p class="field-line"><b>Status:</b> ' + (py.Status || '-') + '</p>' +
             '<p class="field-line"><b>Tgl Selesai:</b> ' + tglSelesai + '</p>' +
             '</td>';
-          html += '<td class="col-bukti">' + buktiImgTag(py.KwitansiURL) + '</td>';
-          html += '<td class="col-bukti">' + buktiImgTag(py.BuktiFotoURL) + '</td>';
+          var fotoUrls = [py.FotoURL1, py.FotoURL2, py.FotoURL3, py.FotoURL4, py.FotoURL5];
+          var kwitansiUrls = [py.KwitansiURL1, py.KwitansiURL2, py.KwitansiURL3, py.KwitansiURL4, py.KwitansiURL5];
+          html += '<td class="col-bukti">' + buktiImgTag(kwitansiUrls) + '</td>';
+          html += '<td class="col-bukti">' + buktiImgTag(fotoUrls) + '</td>';
           html += '</tr>';
         });
       } else {
@@ -830,21 +843,38 @@
         const reader = new FileReader();
         reader.onload = () => {
           const base64String = reader.result.split(',')[1];
-          resolve({ base64: base64String, mime: file.type, name: file.name });
+          resolve({ base64: base64String, mimeType: file.type, name: file.name });
         };
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
       });
     }
 
+    // FUNGSI HELPER: BACA BEBERAPA FILE SEKALIGUS JADI ARRAY
+    async function readMultipleFilesAsBase64(fileList) {
+      const files = Array.from(fileList || []);
+      const results = [];
+      for (const f of files) {
+        const data = await readFileAsBase64(f);
+        if (data) results.push(data); // {base64, mimeType, name}
+      }
+      return results;
+    }
+
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const fotoFile = document.getElementById('bk_foto').files[0];
-      const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
+      const fotoFileList = document.getElementById('bk_foto').files;
+      const kwitansiFileList = document.getElementById('bk_kwitansi').files;
 
-      if (!fotoFile && !kwitansiFile) {
+      if (fotoFileList.length === 0 && kwitansiFileList.length === 0) {
         toast('❌ Isi minimal salah satu: Bukti Foto atau Kwitansi.');
+        return;
+      }
+
+      const MAX_FILE = 5; // samain sama MAX_FOTO/MAX_KWITANSI di Code.gs
+      if (fotoFileList.length > MAX_FILE || kwitansiFileList.length > MAX_FILE) {
+        toast('❌ Maksimal ' + MAX_FILE + ' foto per jenis bukti.');
         return;
       }
 
@@ -861,18 +891,14 @@
       showLoading('Mengunggah bukti foto & kwitansi...');
 
       try {
-        const fotoData = await readFileAsBase64(fotoFile);
-        const kwitansiData = await readFileAsBase64(kwitansiFile);
+        const fotoDataArr = await readMultipleFilesAsBase64(fotoFileList);
+        const kwitansiDataArr = await readMultipleFilesAsBase64(kwitansiFileList);
 
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
-          fotoBase64: fotoData ? fotoData.base64 : '',
-          fotoMime: fotoData ? fotoData.mime : '',
-          fotoName: fotoData ? fotoData.name : '',
-          kwitansiBase64: kwitansiData ? kwitansiData.base64 : '',
-          kwitansiMime: kwitansiData ? kwitansiData.mime : '',
-          kwitansiName: kwitansiData ? kwitansiData.name : ''
+          fotoFiles: fotoDataArr,        // [{name, mimeType, base64}, ...]
+          kwitansiFiles: kwitansiDataArr
         };
 
         callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
