@@ -332,10 +332,10 @@
         <input type="hidden" id="bk_id">
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
-        <label>Upload Bukti Foto (Dari Galeri HP / PDF)</label>
-        <input type="file" id="bk_foto" accept="image/*,application/pdf" multiple>
-        <label>Upload Kwitansi (Dari Galeri HP / PDF)</label>
-        <input type="file" id="bk_kwitansi" accept="image/*,application/pdf" multiple>
+        <label>Upload Bukti Foto (Dari Galeri HP)</label>
+        <input type="file" id="bk_foto" accept="image/*">
+        <label>Upload Kwitansi (Dari Galeri HP)</label>
+        <input type="file" id="bk_kwitansi" accept="image/*">
         <div class="actions" style="margin-top: 20px;">
           <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
           <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
@@ -357,7 +357,7 @@
   <script>
     // ---------- KONFIGURASI BACKEND (Apps Script) ----------
     // PENTING: Ganti dengan URL hasil "New deployment" terbaru dari Apps Script.
-    var EXEC_URL = 'https://script.google.com/macros/s/AKfycbxJma8Iii1BqScYdu9nkD9wNrVWIprTX1CZzIQ4oGGDEsk5xczf2VNV8RtuNS_erjUE/exec';
+    var EXEC_URL = 'https://script.google.com/macros/s/AKfycbx9ZLzpHclODNe7KTsavhkvvSs4OvF2Wm8viUgPLMqBby3fMkKetti33WAtyFC5ueX7/exec';
 
     // Helper pemanggil backend dengan fetch (Bypass CORS)
     // TAMBAHAN: retry otomatis. Di PWA/WebView (Add to Home Screen), sesekali
@@ -368,7 +368,7 @@
     function callBackendOnce(action, payload) {
       return fetch(EXEC_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' }, // INI WAJIB ADA untuk Google Apps Script
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ action: action, payload: payload || {} }),
         redirect: 'follow'
       })
@@ -378,13 +378,17 @@
             return JSON.parse(text);
           } catch (e) {
             console.error('Respons server tidak valid:', text);
-            throw new Error('Server merespons tapi formatnya salah. Cek eksekusi di Apps Script.');
+            if (text.includes('<!DOCTYPE') || text.toLowerCase().includes('<html')) {
+              throw new Error('Akses ditolak oleh Google. Pastikan "Who has access" diset ke "Anyone" saat deploy.');
+            } else if (text.includes('Backend API')) {
+              throw new Error('Salah endpoint (memanggil doGet). Pastikan URL menggunakan hasil "New deployment" terbaru.');
+            } else {
+              throw new Error('Server mengembalikan respons tidak valid (404/Redirect gagal).');
+            }
           }
-        })
-        .catch(function (error) {
-          throw new Error('Gagal menghubungi server. Pastikan koneksi stabil: ' + error.message);
         });
     }
+
     function delay(ms) {
       return new Promise(function (resolve) { setTimeout(resolve, ms); });
     }
@@ -559,7 +563,7 @@
 
     function renderDetail(detail, programId) {
       var p = detail.program;
-      
+
       // Tambahan Header Kop Surat Khusus untuk Cetak PDF
       var html = '<div class="print-header">';
       html += '<table style="width:100%; border-collapse:collapse;"><tr>';
@@ -836,10 +840,10 @@
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const fotoInput = document.getElementById('bk_foto').files;
-      const kwitansiInput = document.getElementById('bk_kwitansi').files;
+      const fotoFile = document.getElementById('bk_foto').files[0];
+      const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
 
-      if (fotoInput.length === 0 && kwitansiInput.length === 0) {
+      if (!fotoFile && !kwitansiFile) {
         toast('❌ Isi minimal salah satu: Bukti Foto atau Kwitansi.');
         return;
       }
@@ -854,24 +858,21 @@
       const originalText = btn.textContent;
       btn.disabled = true;
       btn.textContent = 'Mengunggah Data... (Mohon Tunggu)';
-      showLoading('Mengunggah file, mohon tunggu...');
+      showLoading('Mengunggah bukti foto & kwitansi...');
 
       try {
-        // Proses semua file foto (gambar/pdf) sekaligus
-        const fotoFilesData = await Promise.all(
-          Array.from(fotoInput).map(file => readFileAsBase64(file))
-        );
-        
-        // Proses semua file kwitansi (gambar/pdf) sekaligus
-        const kwitansiFilesData = await Promise.all(
-          Array.from(kwitansiInput).map(file => readFileAsBase64(file))
-        );
+        const fotoData = await readFileAsBase64(fotoFile);
+        const kwitansiData = await readFileAsBase64(kwitansiFile);
 
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
-          fotoFiles: fotoFilesData.filter(item => item !== null),
-          kwitansiFiles: kwitansiFilesData.filter(item => item !== null)
+          fotoBase64: fotoData ? fotoData.base64 : '',
+          fotoMime: fotoData ? fotoData.mime : '',
+          fotoName: fotoData ? fotoData.name : '',
+          kwitansiBase64: kwitansiData ? kwitansiData.base64 : '',
+          kwitansiMime: kwitansiData ? kwitansiData.mime : '',
+          kwitansiName: kwitansiData ? kwitansiData.name : ''
         };
 
         callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
@@ -894,7 +895,7 @@
         btn.textContent = originalText;
         hideLoading();
         isSubmitting = false;
-        showError('Gagal membaca file dari HP/Komputer Anda.');
+        showError('Gagal membaca file gambar dari HP Anda.');
       }
     });
 
@@ -977,6 +978,7 @@
           sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
           res.data.forEach(function (pm) {
             if (pendingNames.indexOf(pm.Nama) === -1) {
+              sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>';
               // TAMBAHAN: simpan Wilayah & Kontak Wali di data-attribute,
               // supaya bisa dipakai untuk auto-isi form saat anak ini dipilih.
               sel.innerHTML += '<option value="' + pm.ID + '" data-wilayah="' + (pm.Wilayah || '').replace(/"/g, '&quot;') + '" data-kontak="' + (pm.Kontak || '').replace(/"/g, '&quot;') + '">' + pm.Nama + '</option>';
