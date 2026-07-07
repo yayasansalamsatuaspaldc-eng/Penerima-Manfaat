@@ -368,7 +368,7 @@
     function callBackendOnce(action, payload) {
       return fetch(EXEC_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
+        // Baris headers dihapus untuk menghindari blokir keamanan browser (CORS Preflight)
         body: JSON.stringify({ action: action, payload: payload || {} }),
         redirect: 'follow'
       })
@@ -386,6 +386,10 @@
               throw new Error('Server mengembalikan respons tidak valid (404/Redirect gagal).');
             }
           }
+        })
+        .catch(function (error) {
+          // Menangkap error jaringan/CORS dan mencetak URL yang diakses ke layar
+          throw new Error('Failed to fetch. Browser mungkin nyangkut di URL lama: ' + EXEC_URL.substring(0, 55) + '...');
         });
     }
 
