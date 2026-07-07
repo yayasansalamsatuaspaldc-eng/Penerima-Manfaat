@@ -326,16 +326,25 @@
     </div>
 
     <!-- MODAL UNGGAH BUKTI -->
-    <div class="card" id="modalBukti" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:90%; max-width:420px; z-index:50; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+    <div class="card" id="modalBukti" style="display:none; position:fixed; top:5%; left:50%; transform:translateX(-50%); width:90%; max-width:420px; max-height:90vh; overflow-y:auto; z-index:50; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
       <h3>Unggah Bukti Pembagian</h3>
       <form id="formBukti">
         <input type="hidden" id="bk_id">
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
-        <label>Upload Bukti Foto (Dari Galeri HP)</label>
+        
+        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">1. Upload Bukti Foto (Utama)</label>
         <input type="file" id="bk_foto" accept="image/*">
-        <label>Upload Kwitansi (Dari Galeri HP)</label>
+        
+        <label>Upload Bukti Foto 2 (Opsional)</label>
+        <input type="file" id="bk_foto2" accept="image/*">
+        
+        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">2. Upload Kwitansi (Utama)</label>
         <input type="file" id="bk_kwitansi" accept="image/*">
+        
+        <label>Upload Kwitansi 2 (Opsional)</label>
+        <input type="file" id="bk_kwitansi2" accept="image/*">
+        
         <div class="actions" style="margin-top: 20px;">
           <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
           <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
@@ -841,10 +850,12 @@
       e.preventDefault();
 
       const fotoFile = document.getElementById('bk_foto').files[0];
+      const foto2File = document.getElementById('bk_foto2').files[0];
       const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
+      const kwitansi2File = document.getElementById('bk_kwitansi2').files[0];
 
-      if (!fotoFile && !kwitansiFile) {
-        toast('❌ Isi minimal salah satu: Bukti Foto atau Kwitansi.');
+      if (!fotoFile && !kwitansiFile && !foto2File && !kwitansi2File) {
+        toast('❌ Isi minimal salah satu foto atau kwitansi.');
         return;
       }
 
@@ -862,17 +873,29 @@
 
       try {
         const fotoData = await readFileAsBase64(fotoFile);
+        const foto2Data = await readFileAsBase64(foto2File);
         const kwitansiData = await readFileAsBase64(kwitansiFile);
+        const kwitansi2Data = await readFileAsBase64(kwitansi2File);
 
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
+          
           fotoBase64: fotoData ? fotoData.base64 : '',
           fotoMime: fotoData ? fotoData.mime : '',
           fotoName: fotoData ? fotoData.name : '',
+          
+          foto2Base64: foto2Data ? foto2Data.base64 : '',
+          foto2Mime: foto2Data ? foto2Data.mime : '',
+          foto2Name: foto2Data ? foto2Data.name : '',
+          
           kwitansiBase64: kwitansiData ? kwitansiData.base64 : '',
           kwitansiMime: kwitansiData ? kwitansiData.mime : '',
-          kwitansiName: kwitansiData ? kwitansiData.name : ''
+          kwitansiName: kwitansiData ? kwitansiData.name : '',
+          
+          kwitansi2Base64: kwitansi2Data ? kwitansi2Data.base64 : '',
+          kwitansi2Mime: kwitansi2Data ? kwitansi2Data.mime : '',
+          kwitansi2Name: kwitansi2Data ? kwitansi2Data.name : ''
         };
 
         callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
@@ -880,7 +903,7 @@
             toast('✅ Bukti berhasil disimpan ke Drive & Distribusi Selesai!');
             closeModal();
             loadTerjadwal();
-            loadPenerimaOptions(); // Anak ini bisa muncul lagi untuk dijadwalkan bantuan baru
+            loadPenerimaOptions();
           } else { showError(res); }
         }).catch(function (err) {
           showError(err);
@@ -898,7 +921,6 @@
         showError('Gagal membaca file gambar dari HP Anda.');
       }
     });
-
     // ---------- SHARED LOADERS ----------
     // TAMBAHAN: fungsi ini sebelumnya dipanggil (saat buka menu "Data Penerima"
     // dan setelah berhasil daftarkan penerima baru) tapi belum pernah dibuat,
