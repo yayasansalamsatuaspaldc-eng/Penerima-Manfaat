@@ -368,7 +368,7 @@
     function callBackendOnce(action, payload) {
       return fetch(EXEC_URL, {
         method: 'POST',
-        // Baris headers dihapus untuk menghindari blokir keamanan browser (CORS Preflight)
+        headers: { 'Content-Type': 'text/plain' }, // INI WAJIB ADA untuk Google Apps Script
         body: JSON.stringify({ action: action, payload: payload || {} }),
         redirect: 'follow'
       })
@@ -378,21 +378,13 @@
             return JSON.parse(text);
           } catch (e) {
             console.error('Respons server tidak valid:', text);
-            if (text.includes('<!DOCTYPE') || text.toLowerCase().includes('<html')) {
-              throw new Error('Akses ditolak oleh Google. Pastikan "Who has access" diset ke "Anyone" saat deploy.');
-            } else if (text.includes('Backend API')) {
-              throw new Error('Salah endpoint (memanggil doGet). Pastikan URL menggunakan hasil "New deployment" terbaru.');
-            } else {
-              throw new Error('Server mengembalikan respons tidak valid (404/Redirect gagal).');
-            }
+            throw new Error('Server merespons tapi formatnya salah. Cek eksekusi di Apps Script.');
           }
         })
         .catch(function (error) {
-          // Menangkap error jaringan/CORS dan mencetak URL yang diakses ke layar
-          throw new Error('Failed to fetch. Browser mungkin nyangkut di URL lama: ' + EXEC_URL.substring(0, 55) + '...');
+          throw new Error('Gagal menghubungi server. Pastikan koneksi stabil: ' + error.message);
         });
     }
-
     function delay(ms) {
       return new Promise(function (resolve) { setTimeout(resolve, ms); });
     }
