@@ -333,17 +333,23 @@
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
         
-        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">1. Upload Bukti Foto (Utama)</label>
-        <input type="file" id="bk_foto" accept="image/*">
+        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">1. Bukti Foto Kegiatan</label>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
+          <input type="file" id="bk_foto" accept="image/*" title="Foto Utama">
+          <input type="file" id="bk_foto2" accept="image/*" title="Foto 2 (Opsional)">
+          <input type="file" id="bk_foto3" accept="image/*" title="Foto 3 (Opsional)">
+          <input type="file" id="bk_foto4" accept="image/*" title="Foto 4 (Opsional)">
+          <input type="file" id="bk_foto5" accept="image/*" title="Foto 5 (Opsional)">
+        </div>
         
-        <label>Upload Bukti Foto 2 (Opsional)</label>
-        <input type="file" id="bk_foto2" accept="image/*">
-        
-        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">2. Upload Kwitansi (Utama)</label>
-        <input type="file" id="bk_kwitansi" accept="image/*">
-        
-        <label>Upload Kwitansi 2 (Opsional)</label>
-        <input type="file" id="bk_kwitansi2" accept="image/*">
+        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">2. Bukti Kwitansi Belanja</label>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <input type="file" id="bk_kwitansi" accept="image/*" title="Kwitansi Utama">
+          <input type="file" id="bk_kwitansi2" accept="image/*" title="Kwitansi 2 (Opsional)">
+          <input type="file" id="bk_kwitansi3" accept="image/*" title="Kwitansi 3 (Opsional)">
+          <input type="file" id="bk_kwitansi4" accept="image/*" title="Kwitansi 4 (Opsional)">
+          <input type="file" id="bk_kwitansi5" accept="image/*" title="Kwitansi 5 (Opsional)">
+        </div>
         
         <div class="actions" style="margin-top: 20px;">
           <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
@@ -572,56 +578,49 @@
 
     function renderDetail(detail, programId) {
       var p = detail.program;
-
-      // Tambahan Header Kop Surat Khusus untuk Cetak PDF
       var html = '<div class="print-header">';
       html += '<table style="width:100%; border-collapse:collapse;"><tr>';
-      html += '<td style="width:85px; vertical-align:middle; padding-right:12px;">' +
-        '<img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:80px; height:80px; object-fit:contain; display:block;" alt="Logo YASSA">' +
-        '</td>';
-      html += '<td style="vertical-align:middle; text-align:center;">' +
-        '<h1 style="margin:0; font-size:20px; color:#2c3e50; text-transform:uppercase; letter-spacing:0.5px;">Yayasan Salam Satu Aspal</h1>' +
-        '<p style="margin:3px 0 0; font-size:8.5px; color:#777777; line-height:1.35;">' +
-        'Akte Notaris Nomor 5 Tgl 02 Agustus 2022, Notaris Jose Dima Satria, SH, M.KN, SK MENKUMHAM Nomor AHU-0024199.AH.01.12 Tahun 2022<br>' +
-        'NPWP No. 61.030.342.2-416.000<br>' +
-        'Jalan H. Mean Raya No. 72 RT 001 RW 002, Kelurahan Karang Timur, Kecamatan Karang Tengah, Kota Tangerang, Provinsi Banten 15157 | Telp/WA: 081385009062' +
-        '</p></td>';
-      html += '</tr></table>';
-      html += '<hr style="border:none; border-top:2px solid #000; margin:8px 0 0;">';
-      html += '</div>';
-
+      html += '<td style="width:85px; vertical-align:middle; padding-right:12px;"><img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:80px; height:80px; object-fit:contain; display:block;" alt="Logo YASSA"></td>';
+      html += '<td style="vertical-align:middle; text-align:center;"><h1 style="margin:0; font-size:20px; color:#2c3e50; text-transform:uppercase; letter-spacing:0.5px;">Yayasan Salam Satu Aspal</h1><p style="margin:3px 0 0; font-size:8.5px; color:#777777; line-height:1.35;">Akte Notaris Nomor 5 Tgl 02 Agustus 2022, Notaris Jose Dima Satria, SH, M.KN, SK MENKUMHAM Nomor AHU-0024199.AH.01.12 Tahun 2022<br>NPWP No. 61.030.342.2-416.000<br>Jalan H. Mean Raya No. 72 RT 001 RW 002, Kelurahan Karang Timur, Kecamatan Karang Tengah, Kota Tangerang, Provinsi Banten 15157 | Telp/WA: 081385009062</p></td>';
+      html += '</tr></table><hr style="border:none; border-top:2px solid #000; margin:8px 0 0;"></div>';
+      
       html += '<div class="card lpj-header-block">' +
         '<p style="text-align:center; font-weight:700; font-size:13px; letter-spacing:0.5px; margin:0 0 4px; color:#333;">LAPORAN PERTANGGUNGJAWABAN</p>' +
         '<h2 style="text-align:center; font-size:19px; margin:0 0 14px; color:#2c3e50;">' + p.Nama + '</h2>' +
         '<p style="margin:0 0 3px; font-size:12px;"><b>Deskripsi Program:</b> ' + (p.Deskripsi || '-') + '</p>' +
         '<p style="margin:0 0 3px; font-size:12px;"><b>Periode:</b> ' + fmtDate(p.TanggalMulai) + '  s/d  ' + fmtDate(p.TanggalSelesai) + '</p>' +
-        '<p style="margin:0; font-size:12px;"><b>Target Dana:</b> ' + formatRp(p.TargetDana) + '</p>' +
-        '</div>';
-
+        '<p style="margin:0; font-size:12px;"><b>Target Dana:</b> ' + formatRp(p.TargetDana) + '</p></div>';
+        
       html += '<div class="card card-table"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
-        '<th class="col-no">No</th><th>Penerima</th><th>Nilai / Status</th><th class="col-bukti">Bukti Kwitansi</th><th class="col-bukti">Bukti Foto</th>' +
-        '</tr></thead><tbody>';
+        '<th class="col-no">No</th><th>Penerima</th><th>Nilai / Status</th><th class="col-bukti">Bukti Kwitansi</th><th class="col-bukti">Bukti Foto</th></tr></thead><tbody>';
+        
       if (detail.penyaluran.length) {
         detail.penyaluran.forEach(function (py, i) {
           var tglSelesai = py.Status === 'Selesai' ? fmtDate(py.TanggalRealisasi) : '-';
-          html += '<tr>';
-          html += '<td class="col-no">' + (i + 1) + '</td>';
-          html += '<td>' +
+          html += '<tr><td class="col-no">' + (i + 1) + '</td><td>' +
             '<p class="field-line"><b>Nama Anak Yatim:</b> ' + (py.NamaPenerima || '-') + '</p>' +
             '<p class="field-line"><b>Wilayah:</b> ' + (py.Wilayah || '-') + '</p>' +
             '<p class="field-line"><b>Sekolah &amp; Kelas:</b> ' + (py.Sekolah || '-') + (py.Kelas ? ' / ' + py.Kelas : '') + '</p>' +
             '<p class="field-line"><b>Umur:</b> ' + (py.Umur || '-') + '</p>' +
             '<p class="field-line"><b>Nama Orang Tua (Alm):</b> ' + (py.NamaOrtuAlm || '-') + '</p>' +
-            '<p class="field-line"><b>Kontak Wali (PIC):</b> ' + (py.PIC || '-') + '</p>' +
-            '</td>';
-          html += '<td>' +
+            '<p class="field-line"><b>Kontak Wali (PIC):</b> ' + (py.PIC || '-') + '</p></td><td>' +
             '<p class="field-line"><b>Nilai:</b> ' + formatRp(py.NilaiRp) + '</p>' +
             '<p class="field-line"><b>Status:</b> ' + (py.Status || '-') + '</p>' +
-            '<p class="field-line"><b>Tgl Selesai:</b> ' + tglSelesai + '</p>' +
-            '</td>';
-          html += '<td class="col-bukti">' + buktiImgTag(py.KwitansiURL) + '</td>';
-          html += '<td class="col-bukti">' + buktiImgTag(py.BuktiFotoURL) + '</td>';
-          html += '</tr>';
+            '<p class="field-line"><b>Tgl Selesai:</b> ' + tglSelesai + '</p></td>';
+          
+          var kwitHtml = buktiImgTag(py.KwitansiURL);
+          if (py.KwitansiURL2) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL2);
+          if (py.KwitansiURL3) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL3);
+          if (py.KwitansiURL4) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL4);
+          if (py.KwitansiURL5) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL5);
+
+          var fotoHtml = buktiImgTag(py.BuktiFotoURL);
+          if (py.BuktiFotoURL2) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL2);
+          if (py.BuktiFotoURL3) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL3);
+          if (py.BuktiFotoURL4) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL4);
+          if (py.BuktiFotoURL5) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL5);
+
+          html += '<td class="col-bukti">' + kwitHtml + '</td><td class="col-bukti">' + fotoHtml + '</td></tr>';
         });
       } else {
         html += '<tr><td colspan="5" class="empty">Belum ada penyaluran / jadwal untuk program ini.</td></tr>';
@@ -629,232 +628,30 @@
       html += '</tbody></table></div></div>';
 
       var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|]/g, '-').trim();
-      html += '<div class="card">';
-      html += '<h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>';
-      html += '<div class="summary-grid">' +
-        '<div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div>' +
-        '<div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div>' +
-        '<div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>';
-      html += '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div>';
-      html += '</div>';
-
+      html += '<div class="card"><h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>' +
+        '<div class="summary-grid"><div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div><div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div><div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>' +
+        '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div></div>';
+      
       document.getElementById('detailContent').innerHTML = html;
-    }
-
-    function cetakLaporan(namaProgram, btn) {
-      // Menyimpan judul asli web
-      var originalTitle = document.title;
-
-      // Mengubah judul tab sementara agar nama file PDF otomatis sesuai nama program
-      document.title = "Laporan LPJ - " + namaProgram;
-
-      // Memunculkan dialog cetak PDF bawaan browser secara instan
-      window.print();
-
-      // Mengembalikan judul web ke aslinya setelah 1 detik
-      setTimeout(function() {
-        document.title = originalTitle;
-      }, 1000);
-    }
-
-    // ---------- FORM: PROGRAM BARU & DONASI MASUK ----------
-    document.getElementById('formProgram').addEventListener('submit', function (e) {
-      e.preventDefault();
-      handleFormSubmit({
-        form: e.target,
-        loadingMsg: 'Menyimpan program...',
-        action: 'addProgram',
-        successMsg: '✅ Program berhasil dibuat! Silakan catat donasinya.',
-        buildData: function () {
-          return {
-            nama: document.getElementById('p_nama').value,
-            deskripsi: document.getElementById('p_deskripsi').value,
-            targetDana: document.getElementById('p_target').value,
-            tanggalMulai: document.getElementById('p_mulai').value,
-            tanggalSelesai: document.getElementById('p_selesai').value
-          };
-        },
-        onSuccess: function () {
-          loadProgramOptions(); // Segarkan dropdown
-        }
-      });
-    });
-
-    document.getElementById('formDonasi').addEventListener('submit', function (e) {
-      e.preventDefault();
-      handleFormSubmit({
-        form: e.target,
-        loadingMsg: 'Menyimpan donasi...',
-        action: 'addDonasi',
-        successMsg: '✅ Donasi berhasil dimasukkan ke kas!',
-        buildData: function () {
-          return {
-            programId: document.getElementById('d_program').value,
-            namaDonatur: document.getElementById('d_nama').value,
-            jumlah: document.getElementById('d_jumlah').value,
-            tanggal: document.getElementById('d_tanggal').value,
-            metode: document.getElementById('d_metode').value
-          };
-        }
-      });
-    });
-
-    // ---------- FORM: PENERIMA MANFAAT ----------
-    document.getElementById('formPenerima').addEventListener('submit', function (e) {
-      e.preventDefault();
-      handleFormSubmit({
-        form: e.target,
-        loadingMsg: 'Mendaftarkan anak yatim...',
-        action: 'addPenerima',
-        successMsg: '✅ Anak Yatim berhasil didaftarkan!',
-        buildData: function () {
-          return {
-            nama: document.getElementById('pm_nama').value,
-            wilayah: document.getElementById('pm_wilayah').value,
-            sekolah: document.getElementById('pm_sekolah').value,
-            kelas: '', // Disatukan dengan input sekolah
-            umur: document.getElementById('pm_umur').value,
-            namaOrtuAlm: document.getElementById('pm_ortu').value,
-            kontak: document.getElementById('pm_kontak').value
-          };
-        },
-        onSuccess: function () {
-          loadPenerimaTable();
-        }
-      });
-    });
-
-    // ---------- FORM: JADWAL DISTRIBUSI ----------
-    document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
-      e.preventDefault();
-      handleFormSubmit({
-        form: e.target,
-        loadingMsg: 'Menjadwalkan bantuan...',
-        action: 'addPenyaluran',
-        successMsg: '✅ Jadwal pembagian berhasil dibuat!',
-        buildData: function () {
-          var select = document.getElementById('py_penerima');
-          var namaPenerima = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
-          return {
-            programId: document.getElementById('py_program').value,
-            penerimaId: select.value,
-            namaPenerima: namaPenerima,
-            wilayah: document.getElementById('py_wilayah').value,
-            pic: document.getElementById('py_pic').value,
-            itemBantuan: document.getElementById('py_item').value,
-            nilaiRp: document.getElementById('py_nilai').value,
-            tanggalJadwal: document.getElementById('py_tanggal').value
-          };
-        },
-        onSuccess: function () {
-          loadTerjadwal(); // Langsung perbarui tabel di bawahnya
-          loadPenerimaOptions(); // Anak yang baru dijadwalkan hilang dari dropdown
-        }
-      });
-    });
-
-    // ---------- TABEL DISTRIBUSI TERJADWAL & UPLOAD FILE ----------
-    // TAMBAHAN: sekarang menampilkan SEMUA status (Terjadwal & Selesai),
-    // sebelumnya baris yang statusnya "Selesai" langsung dibuang dari daftar ini.
-    function loadTerjadwal() {
-      var wrap = document.getElementById('listTerjadwal');
-      wrap.innerHTML = '<p class="empty">Memuat data penjadwalan...</p>';
-      callBackend('getDashboardData').then(function (res) {
-        if (!res.success) { showError(res); return; }
-        var programs = res.data;
-        var ids = programs.map(function (p) { return p.id; });
-        if (!ids.length) { wrap.innerHTML = '<p class="empty">Belum ada program yang dijadwalkan.</p>'; return; }
-        var results = [];
-        var count = 0;
-        ids.forEach(function (pid) {
-          callBackend('getProgramDetail', { programId: pid }).then(function (detailRes) {
-            count++;
-            if (detailRes.success) {
-              (detailRes.data.penyaluran || []).forEach(function (py) {
-                results.push(py);
-              });
-            }
-            if (count === ids.length) renderTerjadwal(results);
-          });
-        });
-      });
-    }
-
-    // TAMBAHAN: yang statusnya "Selesai" tetap tampil di daftar ini, tapi
-    // kolom Aksi diganti jadi tulisan status saja (tidak ada gambar bukti).
-    // Yang masih menunggu (belum Selesai) diurutkan tampil lebih dulu di atas.
-    function renderTerjadwal(list) {
-      var wrap = document.getElementById('listTerjadwal');
-      if (!list.length) {
-        wrap.innerHTML = '<p class="empty">Belum ada data penjadwalan bantuan.</p>';
-        return;
-      }
-
-      list.sort(function (a, b) {
-        if (a.Status === b.Status) return 0;
-        return a.Status === 'Selesai' ? 1 : -1;
-      });
-
-      var html = '<table><thead><tr><th>Penerima</th><th>Wilayah & Korwil</th><th>Bantuan & Nilai</th><th>Rencana Tanggal</th><th>Status / Aksi</th></tr></thead><tbody>';
-      list.forEach(function (py) {
-        var aksiCell;
-        if (py.Status === 'Selesai') {
-          aksiCell =
-            '<span style="color:var(--green); font-weight:600; font-size:12px;">✅ Bukti sudah diunggah</span>' +
-            '<br><span style="color:var(--muted); font-size:11px;">Realisasi: ' + fmtDate(py.TanggalRealisasi) + '</span>';
-        } else {
-          aksiCell = '<button class="btn small" onclick="openModalBukti(\'' + py.ID + '\')">📤 Unggah Bukti</button>';
-        }
-
-        html += '<tr>' +
-          '<td><b>' + py.NamaPenerima + '</b></td>' +
-          '<td>' + (py.Wilayah || '-') + '<br><span style="color:var(--muted);font-size:11px;">Oleh: ' + (py.PIC || '-') + '</span></td>' +
-          '<td>' + py.ItemBantuan + '<br><span style="color:var(--green);font-size:12px;font-weight:600;">' + formatRp(py.NilaiRp) + '</span></td>' +
-          '<td>' + fmtDate(py.TanggalJadwal) + '</td>' +
-          '<td>' + aksiCell + '</td>' +
-          '</tr>';
-      });
-      html += '</tbody></table>';
-      wrap.innerHTML = html;
-    }
-
-    function openModalBukti(penyaluranId) {
-      document.getElementById('bk_id').value = penyaluranId;
-      document.getElementById('bk_tanggal').value = new Date().toISOString().split('T')[0]; // Auto set hari ini
-      document.getElementById('bk_foto').value = '';
-      document.getElementById('bk_kwitansi').value = '';
-      document.getElementById('modalBukti').style.display = 'block';
-      document.getElementById('modalOverlay').style.display = 'block';
-    }
-
-    function closeModal() {
-      document.getElementById('modalBukti').style.display = 'none';
-      document.getElementById('modalOverlay').style.display = 'none';
-    }
-
-    // FUNGSI HELPER: BACA FILE SEBAGAI BASE64
-    function readFileAsBase64(file) {
-      return new Promise((resolve, reject) => {
-        if (!file) { resolve(null); return; }
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64String = reader.result.split(',')[1];
-          resolve({ base64: base64String, mime: file.type, name: file.name });
-        };
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
-      });
     }
 
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const fotoFile = document.getElementById('bk_foto').files[0];
-      const foto2File = document.getElementById('bk_foto2').files[0];
-      const kwitansiFile = document.getElementById('bk_kwitansi').files[0];
-      const kwitansi2File = document.getElementById('bk_kwitansi2').files[0];
+      const inputs = {
+        f1: document.getElementById('bk_foto').files[0],
+        f2: document.getElementById('bk_foto2').files[0],
+        f3: document.getElementById('bk_foto3').files[0],
+        f4: document.getElementById('bk_foto4').files[0],
+        f5: document.getElementById('bk_foto5').files[0],
+        k1: document.getElementById('bk_kwitansi').files[0],
+        k2: document.getElementById('bk_kwitansi2').files[0],
+        k3: document.getElementById('bk_kwitansi3').files[0],
+        k4: document.getElementById('bk_kwitansi4').files[0],
+        k5: document.getElementById('bk_kwitansi5').files[0]
+      };
 
-      if (!fotoFile && !kwitansiFile && !foto2File && !kwitansi2File) {
+      if (!Object.values(inputs).some(file => file !== undefined)) {
         toast('❌ Isi minimal salah satu foto atau kwitansi.');
         return;
       }
@@ -872,30 +669,26 @@
       showLoading('Mengunggah bukti foto & kwitansi...');
 
       try {
-        const fotoData = await readFileAsBase64(fotoFile);
-        const foto2Data = await readFileAsBase64(foto2File);
-        const kwitansiData = await readFileAsBase64(kwitansiFile);
-        const kwitansi2Data = await readFileAsBase64(kwitansi2File);
+        const dF1 = await readFileAsBase64(inputs.f1); const dF2 = await readFileAsBase64(inputs.f2);
+        const dF3 = await readFileAsBase64(inputs.f3); const dF4 = await readFileAsBase64(inputs.f4); const dF5 = await readFileAsBase64(inputs.f5);
+        
+        const dK1 = await readFileAsBase64(inputs.k1); const dK2 = await readFileAsBase64(inputs.k2);
+        const dK3 = await readFileAsBase64(inputs.k3); const dK4 = await readFileAsBase64(inputs.k4); const dK5 = await readFileAsBase64(inputs.k5);
 
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
+          fotoBase64: dF1?.base64 || '', fotoMime: dF1?.mime || '', fotoName: dF1?.name || '',
+          foto2Base64: dF2?.base64 || '', foto2Mime: dF2?.mime || '', foto2Name: dF2?.name || '',
+          foto3Base64: dF3?.base64 || '', foto3Mime: dF3?.mime || '', foto3Name: dF3?.name || '',
+          foto4Base64: dF4?.base64 || '', foto4Mime: dF4?.mime || '', foto4Name: dF4?.name || '',
+          foto5Base64: dF5?.base64 || '', foto5Mime: dF5?.mime || '', foto5Name: dF5?.name || '',
           
-          fotoBase64: fotoData ? fotoData.base64 : '',
-          fotoMime: fotoData ? fotoData.mime : '',
-          fotoName: fotoData ? fotoData.name : '',
-          
-          foto2Base64: foto2Data ? foto2Data.base64 : '',
-          foto2Mime: foto2Data ? foto2Data.mime : '',
-          foto2Name: foto2Data ? foto2Data.name : '',
-          
-          kwitansiBase64: kwitansiData ? kwitansiData.base64 : '',
-          kwitansiMime: kwitansiData ? kwitansiData.mime : '',
-          kwitansiName: kwitansiData ? kwitansiData.name : '',
-          
-          kwitansi2Base64: kwitansi2Data ? kwitansi2Data.base64 : '',
-          kwitansi2Mime: kwitansi2Data ? kwitansi2Data.mime : '',
-          kwitansi2Name: kwitansi2Data ? kwitansi2Data.name : ''
+          kwitansiBase64: dK1?.base64 || '', kwitansiMime: dK1?.mime || '', kwitansiName: dK1?.name || '',
+          kwitansi2Base64: dK2?.base64 || '', kwitansi2Mime: dK2?.mime || '', kwitansi2Name: dK2?.name || '',
+          kwitansi3Base64: dK3?.base64 || '', kwitansi3Mime: dK3?.mime || '', kwitansi3Name: dK3?.name || '',
+          kwitansi4Base64: dK4?.base64 || '', kwitansi4Mime: dK4?.mime || '', kwitansi4Name: dK4?.name || '',
+          kwitansi5Base64: dK5?.base64 || '', kwitansi5Mime: dK5?.mime || '', kwitansi5Name: dK5?.name || ''
         };
 
         callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
@@ -908,16 +701,10 @@
         }).catch(function (err) {
           showError(err);
         }).finally(function () {
-          btn.disabled = false;
-          btn.textContent = originalText;
-          hideLoading();
-          isSubmitting = false;
+          btn.disabled = false; btn.textContent = originalText; hideLoading(); isSubmitting = false;
         });
       } catch (error) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        hideLoading();
-        isSubmitting = false;
+        btn.disabled = false; btn.textContent = originalText; hideLoading(); isSubmitting = false;
         showError('Gagal membaca file gambar dari HP Anda.');
       }
     });
