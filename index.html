@@ -659,6 +659,30 @@
       document.getElementById('detailContent').innerHTML = html;
     }
 
+    // ====== HELPER UTALITAS: KONVERSI GAMBAR KE BASE64 ======
+    function readFileAsBase64(file) {
+      return new Promise(function (resolve, reject) {
+        if (!file) {
+          resolve(null);
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var dataUrl = e.target.result;
+          var base64 = dataUrl.split(',')[1];
+          resolve({
+            base64: base64,
+            mime: file.type,
+            name: file.name
+          });
+        };
+        reader.onerror = function (err) {
+          reject(err);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
