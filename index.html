@@ -804,16 +804,15 @@
 
     function loadPenerimaOptions() {
       var sel = document.getElementById('py_penerima');
-      sel.innerHTML = '<option value="">-- Memuat data... --</option>';
+      // Update teks menjadi lebih komunikatif
+      sel.innerHTML = '<option value="">⏳ Sedang memuat data anak yatim...</option>'; 
+      
       getPendingPenerimaNames().then(function (pendingNames) {
         callBackend('getAllPenerima').then(function (res) {
           if (!res.success) return;
           sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
           res.data.forEach(function (pm) {
             if (pendingNames.indexOf(pm.Nama) === -1) {
-              sel.innerHTML += '<option value="' + pm.ID + '">' + pm.Nama + '</option>';
-              // TAMBAHAN: simpan Wilayah & Kontak Wali di data-attribute,
-              // supaya bisa dipakai untuk auto-isi form saat anak ini dipilih.
               sel.innerHTML += '<option value="' + pm.ID + '" data-wilayah="' + (pm.Wilayah || '').replace(/"/g, '&quot;') + '" data-kontak="' + (pm.Kontak || '').replace(/"/g, '&quot;') + '">' + pm.Nama + '</option>';
             }
           });
@@ -841,6 +840,57 @@
         toast('ℹ️ Kontak Wali anak ini belum diisi saat pendaftaran, silakan isi PIC secara manual.');
       }
     });
+
+    // ====== MODUL DISTRIBUSI & JADWAL (BARU) ======
+
+    function loadTerjadwal() {
+      var wrap = document.getElementById('listTerjadwal');
+      // Menggunakan animasi loader modern yang sudah kita buat di CSS
+      wrap.innerHTML = '<div class="modern-loader"><div class="modern-spinner"></div><p>Menarik daftar jadwal bantuan...</p></div>';
+
+      callBackend('getTerjadwal').then(function(res) {
+        if (res.success) {
+          renderTerjadwal(res.data);
+        } else {
+          wrap.innerHTML = '<p class="empty" style="color:var(--red)">❌ Gagal memuat data: ' + res.message + '</p>';
+        }
+      });
+    }
+
+    function renderTerjadwal(list) {
+      var wrap = document.getElementById('listTerjadwal');
+      if (!list || list.length === 0) {
+        wrap.innerHTML = '<p class="empty">✅ Belum ada jadwal bantuan yang menunggu bukti pembagian.</p>';
+        return;
+      }
+
+      var html = '<table><thead><tr><th>Tgl Rencana</th><th>Nama Penerima</th><th>Bantuan</th><th>Aksi</th></tr></thead><tbody>';
+      list.forEach(function(item) {
+        var btn = '<button class="btn small" onclick="bukaModalBukti(\'' + item.id + '\')">📸 Unggah Bukti</button>';
+        html += '<tr>' +
+          '<td>' + fmtDate(item.tanggalJadwal) + '</td>' +
+          '<td><b>' + item.namaPenerima + '</b><br><span style="font-size:11px;color:var(--muted)">' + (item.wilayah || '-') + '</span></td>' +
+          '<td>' + item.itemBantuan + '<br><b style="color:var(--primary)">' + formatRp(item.nilaiRp) + '</b></td>' +
+          '<td>' + btn + '</td>' +
+        '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+
+    // Fungsi untuk memunculkan dan menyembunyikan Pop-Up (Modal)
+    function bukaModalBukti(id) {
+      document.getElementById('bk_id').value = id;
+      document.getElementById('bk_tanggal').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modalBukti').style.display = 'block';
+      document.getElementById('modalOverlay').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('modalBukti').style.display = 'none';
+      document.getElementById('modalOverlay').style.display = 'none';
+      document.getElementById('formBukti').reset();
+    }
 
     // ---------- INIT START ----------
     loadDashboard();
