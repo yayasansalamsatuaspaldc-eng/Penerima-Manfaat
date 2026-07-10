@@ -795,32 +795,62 @@
       var areaCetak = document.getElementById('cetakArea');
       if (!areaCetak) return;
       
-      isSubmitting = true;
-      showLoading('Mengekspor & Menyimpan PDF ke Google Drive...');
+      // Gandakan HTML agar layar asli tidak rusak saat kita edit
+      var cloneHtml = areaCetak.cloneNode(true);
       
-      // Pengaturan mesin cetak PDF dari browser
-      var opt = {
-        margin:       10, // Margin keliling 10mm
-        filename:     'LPJ ' + namaProgram + '.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true }, // Scale 2 agar gambar resolusi tinggi
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: 'css', before: '.page-break', after: '.lampiran-block' }
+      // 1. UBAH TANDA TANGAN JADI TABEL (Agar server Google tidak menumpuknya di kiri)
+      var ttd = cloneHtml.querySelector('.ttd-container');
+      if (ttd) {
+        var ttdTable = document.createElement('table');
+        ttdTable.style.cssText = "width:100%; margin-top:40px; text-align:center; border:none; page-break-inside:avoid;";
+        ttdTable.innerHTML = '<tr>' +
+          '<td style="width:33%; border:none; padding:10px;"><p style="margin:0;">Disiapkan Oleh,</p><div style="height:70px;"></div><p style="margin:0;"><b>(___________________)</b><br>Korwil / PIC Program</p></td>' +
+          '<td style="width:33%; border:none; padding:10px;"><p style="margin:0;">Diperiksa Oleh,</p><div style="height:70px;"></div><p style="margin:0;"><b>(___________________)</b><br>Bendahara Yayasan</p></td>' +
+          '<td style="width:33%; border:none; padding:10px;"><p style="margin:0;">Disetujui Oleh,</p><div style="height:70px;"></div><p style="margin:0;"><b>(___________________)</b><br>Ketua Umum YASSA</p></td>' +
+          '</tr>';
+        ttd.parentNode.replaceChild(ttdTable, ttd);
+      }
+      
+      // 2. UBAH LAMPIRAN JADI TABEL 2 KOTAK (Agar server Google paham susunannya)
+      var lampiranBlocks = cloneHtml.querySelectorAll('.lampiran-block');
+      lampiranBlocks.forEach(function(block) {
+        block.style.cssText = "border: 2px solid #333; padding: 15px; margin-top: 20px; page-break-inside: avoid; page-break-after: always;";
+        var container = block.querySelector('.lampiran-images');
+        if (!container) return;
+        
+        var divs = container.querySelectorAll('div');
+        if (divs.length === 0) return;
+        
+        var tableHtml = '<table style="width:100%; border:none; margin-top:15px; table-layout:fixed;"><tr>';
+        divs.forEach(function(div, index) {
+          var img = div.querySelector('img');
+          // Paksa ukuran gambar di server Google agar proporsional
+          if (img) img.style.cssText = "width:280px; height:280px; object-fit:contain; border:1px solid #ddd; padding:4px;";
+          
+          tableHtml += '<td style="width:50%; border:none; text-align:center; vertical-align:top; padding:10px;">' + div.innerHTML + '</td>';
+          
+          // Turun ke baris baru setiap kelipatan 2 foto
+          if ((index + 1) % 2 === 0 && (index + 1) < divs.length) {
+            tableHtml += '</tr><tr>';
+          }
+        });
+        tableHtml += '</tr></table>';
+        
+        var newDiv = document.createElement('div');
+        newDiv.innerHTML = tableHtml;
+        container.parentNode.replaceChild(newDiv, container);
+      });
+      
+      isSubmitting = true;
+      showLoading('Menyiapkan dan Menyimpan PDF ke Google Drive...');
+      
+      // Kirim kembali wujud HTML yang sudah diubah ke Tabel ini ke Backend
+      var payload = {
+        namaFile: "LPJ " + namaProgram,
+        htmlString: cloneHtml.innerHTML
       };
       
-      // Buat PDF di layar HP/Laptop secara tak terlihat, lalu kirim
-      html2pdf().set(opt).from(areaCetak).outputPdf('datauristring').then(function(pdfBase64) {
-        // Buang teks pembuka kode sandinya
-        var base64Data = pdfBase64.split(',')[1];
-        
-        // Kirim PDF matang ke Backend
-        var payload = {
-          namaFile: "LPJ " + namaProgram,
-          fileBase64: base64Data
-        };
-        
-        return callBackend('simpanPDFkeDrive', payload);
-      }).then(function(res) {
+      callBackend('simpanPDFkeDrive', payload).then(function(res) {
         if (res.success) {
           toast('✅ Berhasil disimpan ke Drive!');
           setTimeout(function() { window.open(res.data.url, '_blank'); }, 1500);
