@@ -600,62 +600,143 @@
       });
     }
 
+    function openDetail(programId) {
+      showView('detail');
+      document.getElementById('detailContent').innerHTML = '<div class="modern-loader" style="padding:50px 20px;"><div class="modern-spinner"></div><p>Memuat detail, mohon tunggu...</p></div>';
+      callBackend('getProgramDetail', { programId: programId }).then(function (res) {
+        if (res.success) renderDetail(res.data, programId);
+        else showError(res);
+      });
+    }
+
     function renderDetail(detail, programId) {
       var p = detail.program;
-      var html = '<div class="print-header">';
-      html += '<table style="width:100%; border-collapse:collapse;"><tr>';
-      html += '<td style="width:85px; vertical-align:middle; padding-right:12px;"><img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:80px; height:80px; object-fit:contain; display:block;" alt="Logo YASSA"></td>';
-      html += '<td style="vertical-align:middle; text-align:center;"><h1 style="margin:0; font-size:20px; color:#2c3e50; text-transform:uppercase; letter-spacing:0.5px;">Yayasan Salam Satu Aspal</h1><p style="margin:3px 0 0; font-size:8.5px; color:#777777; line-height:1.35;">Akte Notaris Nomor 5 Tgl 02 Agustus 2022, Notaris Jose Dima Satria, SH, M.KN, SK MENKUMHAM Nomor AHU-0024199.AH.01.12 Tahun 2022<br>NPWP No. 61.030.342.2-416.000<br>Jalan H. Mean Raya No. 72 RT 001 RW 002, Kelurahan Karang Timur, Kecamatan Karang Tengah, Kota Tangerang, Provinsi Banten 15157 | Telp/WA: 081385009062</p></td>';
-      html += '</tr></table><hr style="border:none; border-top:2px solid #000; margin:8px 0 0;"></div>';
+      var html = '<div id="cetakArea">';
+
+      // ==========================================
+      // HALAMAN 1: COVER & RINGKASAN EKSEKUTIF
+      // ==========================================
+      html += '<div class="print-page">';
       
-      html += '<div class="card lpj-header-block">' +
-        '<p style="text-align:center; font-weight:700; font-size:13px; letter-spacing:0.5px; margin:0 0 4px; color:#333;">LAPORAN PERTANGGUNGJAWABAN</p>' +
-        '<h2 style="text-align:center; font-size:19px; margin:0 0 14px; color:#2c3e50;">' + p.Nama + '</h2>' +
-        '<p style="margin:0 0 3px; font-size:12px;"><b>Deskripsi Program:</b> ' + (p.Deskripsi || '-') + '</p>' +
-        '<p style="margin:0 0 3px; font-size:12px;"><b>Periode:</b> ' + fmtDate(p.TanggalMulai) + '  s/d  ' + fmtDate(p.TanggalSelesai) + '</p>' +
-        '<p style="margin:0; font-size:12px;"><b>Target Dana:</b> ' + formatRp(p.TargetDana) + '</p></div>';
-        
-      html += '<div class="card card-table"><h3>Daftar Penerima Bantuan (Anak Yatim)</h3><div class="table-container"><table class="laporan-table"><thead><tr>' +
-        '<th class="col-no">No</th><th>Penerima</th><th>Nilai / Status</th><th class="col-bukti">Bukti Kwitansi</th><th class="col-bukti">Bukti Foto</th></tr></thead><tbody>';
-        
-      if (detail.penyaluran.length) {
-        detail.penyaluran.forEach(function (py, i) {
-          var tglSelesai = py.Status === 'Selesai' ? fmtDate(py.TanggalRealisasi) : '-';
-          html += '<tr><td class="col-no">' + (i + 1) + '</td><td>' +
-            '<p class="field-line"><b>Nama Anak Yatim:</b> ' + (py.NamaPenerima || '-') + '</p>' +
-            '<p class="field-line"><b>Wilayah:</b> ' + (py.Wilayah || '-') + '</p>' +
-            '<p class="field-line"><b>Sekolah &amp; Kelas:</b> ' + (py.Sekolah || '-') + (py.Kelas ? ' / ' + py.Kelas : '') + '</p>' +
-            '<p class="field-line"><b>Umur:</b> ' + (py.Umur || '-') + '</p>' +
-            '<p class="field-line"><b>Nama Orang Tua (Alm):</b> ' + (py.NamaOrtuAlm || '-') + '</p>' +
-            '<p class="field-line"><b>Kontak Wali (PIC):</b> ' + (py.PIC || '-') + '</p></td><td>' +
-            '<p class="field-line"><b>Nilai:</b> ' + formatRp(py.NilaiRp) + '</p>' +
-            '<p class="field-line"><b>Status:</b> ' + (py.Status || '-') + '</p>' +
-            '<p class="field-line"><b>Tgl Selesai:</b> ' + tglSelesai + '</p></td>';
-          
-          var kwitHtml = buktiImgTag(py.KwitansiURL);
-          if (py.KwitansiURL2) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL2);
-          if (py.KwitansiURL3) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL3);
-          if (py.KwitansiURL4) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL4);
-          if (py.KwitansiURL5) kwitHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.KwitansiURL5);
+      // Kop Surat
+      html += '<table style="width:100%; border-collapse:collapse; margin-bottom:15px;"><tr>';
+      html += '<td style="width:90px;"><img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:85px; height:85px; object-fit:contain;" alt="Logo"></td>';
+      html += '<td style="text-align:center;"><h1 style="margin:0; font-size:22px; color:#1e293b; text-transform:uppercase;">Yayasan Salam Satu Aspal</h1><p style="margin:4px 0 0; font-size:10px; color:#475569; line-height:1.4;">Akte Notaris No. 5 Tgl 02 Agustus 2022 | SK MENKUMHAM AHU-0024199.AH.01.12<br>Jalan H. Mean Raya No. 72 RT 001 RW 002, Karang Timur, Karang Tengah, Tangerang 15157 | Telp/WA: 081385009062</p></td>';
+      html += '</tr></table><hr style="border-top:3px solid #1e293b; border-bottom:1px solid #1e293b; padding:1px 0; margin-bottom:25px;">';
 
-          var fotoHtml = buktiImgTag(py.BuktiFotoURL);
-          if (py.BuktiFotoURL2) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL2);
-          if (py.BuktiFotoURL3) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL3);
-          if (py.BuktiFotoURL4) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL4);
-          if (py.BuktiFotoURL5) fotoHtml += '<br style="margin-top:4px;">' + buktiImgTag(py.BuktiFotoURL5);
+      html += '<h2 style="text-align:center; margin-bottom:5px; text-transform:uppercase;">Laporan Pertanggungjawaban</h2>';
+      html += '<h3 style="text-align:center; color:var(--primary); margin-top:0; margin-bottom:25px;">' + (p.Nama || '-') + '</h3>';
+      
+      html += '<table style="width:100%; margin-bottom:30px; line-height:1.6;">';
+      html += '<tr><td style="width:150px;"><b>Deskripsi Program</b></td><td>: ' + (p.Deskripsi || '-') + '</td></tr>';
+      html += '<tr><td><b>Periode Pelaksanaan</b></td><td>: ' + fmtDate(p.TanggalMulai) + ' s/d ' + fmtDate(p.TanggalSelesai) + '</td></tr>';
+      html += '<tr><td><b>Target Dana</b></td><td>: ' + formatRp(p.TargetDana) + '</td></tr>';
+      html += '</table>';
 
-          html += '<td class="col-bukti">' + kwitHtml + '</td><td class="col-bukti">' + fotoHtml + '</td></tr>';
+      html += '<h4>Ringkasan Keuangan</h4>';
+      html += '<table class="print-table">';
+      html += '<tr><td>Total Dana Masuk (Donasi)</td><td style="text-align:right; font-weight:bold; color:var(--green);">' + formatRp(detail.totalMasuk) + '</td></tr>';
+      html += '<tr><td>Total Dana Tersalurkan</td><td style="text-align:right; font-weight:bold; color:var(--primary);">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
+      html += '<tr><td>Total Dana Terjadwal (Belum Selesai)</td><td style="text-align:right; font-weight:bold;">' + formatRp(detail.totalTerjadwal) + '</td></tr>';
+      html += '<tr style="background-color:#f1f5f9;"><td><b>Sisa Saldo Akhir</b></td><td style="text-align:right; font-weight:bold; font-size:15px;">' + formatRp(detail.saldo) + '</td></tr>';
+      html += '</table>';
+      html += '</div>'; // End Halaman 1
+
+      // ==========================================
+      // HALAMAN 2: RINCIAN TABEL & PENGESAHAN
+      // ==========================================
+      html += '<div class="print-page page-break">';
+      
+      // Tabel Donasi
+      html += '<h4>A. Rincian Donasi Masuk</h4>';
+      if (detail.donasi && detail.donasi.length > 0) {
+        html += '<table class="print-table"><thead><tr><th>No</th><th>Nama Donatur</th><th>Tanggal</th><th>Metode</th><th style="text-align:right;">Nominal (Rp)</th></tr></thead><tbody>';
+        detail.donasi.forEach(function(d, i) {
+          html += '<tr><td style="text-align:center;">' + (i+1) + '</td><td>' + d.NamaDonatur + '</td><td>' + fmtDate(d.Tanggal) + '</td><td>' + (d.Metode||'-') + '</td><td style="text-align:right;">' + formatRp(d.Jumlah) + '</td></tr>';
         });
+        html += '</tbody></table>';
       } else {
-        html += '<tr><td colspan="5" class="empty">Belum ada penyaluran / jadwal untuk program ini.</td></tr>';
+        html += '<p style="font-size:12px; font-style:italic; margin-bottom:20px;">Belum ada donasi masuk.</p>';
       }
-      html += '</tbody></table></div></div>';
 
-      var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|]/g, '-').trim();
-      html += '<div class="card"><h3>' + p.Nama + '</h3><p style="color:var(--muted); font-size:13px; margin-top:-5px;">' + (p.Deskripsi || '') + '</p>' +
-        '<div class="summary-grid"><div><b>' + formatRp(detail.totalMasuk) + '</b>Total Pemasukan</div><div><b>' + formatRp(detail.totalTersalurkan) + '</b>Selesai Dibagikan</div><div><b>' + formatRp(detail.saldo) + '</b>Sisa Saldo</div></div>' +
-        '<div class="actions"><button class="btn" style="width:100%; font-size:14px; padding:12px;" onclick="cetakLaporan(\'' + namaFileAman.replace(/'/g, "\\'") + '\', this)">🖨️ Generate & Cetak Laporan PDF</button></div></div>';
-      
+      // Tabel Distribusi (Dengan Kolom Ref)
+      html += '<h4>B. Rincian Distribusi Bantuan</h4>';
+      if (detail.penyaluran && detail.penyaluran.length > 0) {
+        html += '<table class="print-table"><thead><tr><th>Kode</th><th>Nama Penerima</th><th>Wilayah / PIC</th><th>Item Bantuan</th><th style="text-align:right;">Nilai (Rp)</th><th style="text-align:center;">Ref. Lampiran</th></tr></thead><tbody>';
+        detail.penyaluran.forEach(function(py, i) {
+          var numStr = (i + 1) < 10 ? '00' + (i + 1) : ((i + 1) < 100 ? '0' + (i + 1) : (i + 1));
+          var kode = 'LMP-' + numStr;
+          var refTeks = py.Status === 'Selesai' ? 'Lihat <b>' + kode + '</b>' : '<i>Terjadwal</i>';
+          
+          html += '<tr>' +
+            '<td style="text-align:center;"><b>' + kode + '</b></td>' +
+            '<td><b>' + py.NamaPenerima + '</b><br><small>Umur: ' + (py.Umur||'-') + ' | Alm: ' + (py.NamaOrtuAlm||'-') + '</small></td>' +
+            '<td>' + py.Wilayah + '<br><small>PIC: ' + py.PIC + '</small></td>' +
+            '<td>' + py.ItemBantuan + '</td>' +
+            '<td style="text-align:right;">' + formatRp(py.NilaiRp) + '</td>' +
+            '<td style="text-align:center;">' + refTeks + '</td>' +
+          '</tr>';
+        });
+        html += '</tbody></table>';
+      } else {
+        html += '<p style="font-size:12px; font-style:italic;">Belum ada penyaluran bantuan.</p>';
+      }
+
+      // Lembar Pengesahan
+      html += '<div class="ttd-container">';
+      html += '<div class="ttd-box"><p>Disiapkan Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Korwil / PIC Program</p></div>';
+      html += '<div class="ttd-box"><p>Diperiksa Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Bendahara Yayasan</p></div>';
+      html += '<div class="ttd-box"><p>Disetujui Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Ketua Umum YASSA</p></div>';
+      html += '</div>';
+
+      html += '</div>'; // End Halaman 2
+
+      // ==========================================
+      // HALAMAN 3+: LAMPIRAN DOKUMENTASI (CROSS-REF)
+      // ==========================================
+      var adaLampiran = detail.penyaluran.some(function(py) { return py.Status === 'Selesai'; });
+      if (adaLampiran) {
+        html += '<div class="print-page page-break">';
+        html += '<h3 style="margin-bottom:20px; border-bottom:2px solid #e2e8f0; padding-bottom:10px;">Lampiran Dokumentasi Penyaluran</h3>';
+        
+        detail.penyaluran.forEach(function(py, i) {
+          if (py.Status !== 'Selesai') return; // Lewati yang belum di-upload buktinya
+          
+          var numStr = (i + 1) < 10 ? '00' + (i + 1) : ((i + 1) < 100 ? '0' + (i + 1) : (i + 1));
+          var kode = 'LMP-' + numStr;
+          
+          html += '<div class="lampiran-block">';
+          html += '<h4 style="margin:0 0 8px; color:var(--primary-dark); font-size:16px;">KODE REFERENSI: ' + kode + '</h4>';
+          html += '<p style="margin:0 0 12px; font-size:13px;"><b>Nama Penerima:</b> ' + py.NamaPenerima + ' | <b>Wilayah:</b> ' + py.Wilayah + ' | <b>Tgl Realisasi:</b> ' + fmtDate(py.TanggalRealisasi) + '</p>';
+          
+          // Kumpulkan semua gambar (Foto dan Kwitansi)
+          var imagesHtml = '';
+          [py.BuktiFotoURL, py.BuktiFotoURL2, py.BuktiFotoURL3, py.BuktiFotoURL4, py.BuktiFotoURL5].forEach(function(url) {
+            var direct = driveDirectUrl_(url);
+            if (direct) imagesHtml += '<div><img src="' + direct + '" alt="Foto Kegiatan"><p style="font-size:11px; font-weight:600; color:#475569; margin:4px 0 0;">Bukti Dokumentasi Kegiatan</p></div>';
+          });
+          [py.KwitansiURL, py.KwitansiURL2, py.KwitansiURL3, py.KwitansiURL4, py.KwitansiURL5].forEach(function(url) {
+            var direct = driveDirectUrl_(url);
+            if (direct) imagesHtml += '<div><img src="' + direct + '" alt="Bukti Kwitansi"><p style="font-size:11px; font-weight:600; color:#475569; margin:4px 0 0;">Bukti Kwitansi / Nota Belanja</p></div>';
+          });
+          
+          if (imagesHtml === '') {
+            html += '<p style="font-size:12px; color:#999; font-style:italic;">Tidak ada foto atau kwitansi yang diunggah.</p>';
+          } else {
+            html += '<div class="lampiran-images">' + imagesHtml + '</div>';
+          }
+          html += '</div>'; // End lampiran-block
+        });
+        html += '</div>'; // End Halaman 3+
+      }
+
+      html += '</div>'; // End cetakArea
+
+      // Tombol Aksi di Layar (Hanya tampil di HP/Web, hilang saat dicetak)
+      html += '<div class="actions no-print" style="margin-top:25px; text-align:center;">';
+      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:var(--primary-dark);" onclick="window.print()">🖨️ Cetak / Simpan PDF Laporan</button>';
+      html += '</div>';
+
       document.getElementById('detailContent').innerHTML = html;
     }
 
