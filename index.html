@@ -170,17 +170,42 @@
       body { background: white !important; color: black !important; }
       header, nav, .back-link, .actions, .toast, .loading-overlay { display: none !important; }
       main { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
-      .card { border: 1px solid #ccc !important; box-shadow: none !important; page-break-inside: avoid; }
-      .summary-grid { display: flex !important; justify-content: space-between !important; }
-      .summary-grid div { flex: 1; margin: 0 5px; border: 1px solid #ccc !important; background: #fff !important; }
-      .print-header { display: block !important; text-align: center; margin-bottom: 20px; padding-bottom: 4px; }
-      .status-badge { border: 1px solid #000 !important; color: #000 !important; background: transparent !important; }
-      .laporan-table { font-size: 10.5px; }
-      .laporan-table th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .laporan-table tr { page-break-inside: avoid; }
-      .card.card-table { page-break-inside: auto !important; }
+      .card { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important;}
+      
+      /* Pemisah Halaman */
+      .page-break { page-break-before: always; padding-top: 10px; }
+      .no-print { display: none !important; }
+      
+      /* Style khusus tabel print */
+      .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
+      .print-table th, .print-table td { border: 1px solid #000; padding: 6px; vertical-align: top;}
+      .print-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: center; font-weight: bold;}
+      
+      /* Grid Lampiran Cross-Ref (4 Foto per Kertas) */
+      .lampiran-block { page-break-inside: avoid; page-break-after: always; border: 2px solid #333; padding: 15px; margin-top: 20px; border-radius: 8px; }
+      .lampiran-block:last-child { page-break-after: auto; } /* Mencegah halaman kosong di akhir PDF */
+      .lampiran-images { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+      .lampiran-images div { text-align: center; }
+      .lampiran-images img { width: 100%; max-height: 380px; object-fit: contain; border: 1px solid #ddd; padding: 4px; }
+      
+      /* Lembar Pengesahan Tanda Tangan */
+      .ttd-container { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; page-break-inside: avoid; }
+      .ttd-box { width: 30%; font-size: 11px; }
+      .ttd-space { height: 70px; }
     }
-    .print-header { display: none; }
+    
+    /* Tampilan Normal (Layar) untuk elemen cetak agar tetap rapi saat dilihat sebelum diprint */
+    .print-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; margin-bottom: 25px; }
+    .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 10px; }
+    .print-table th { background-color: #f8fafc; font-weight: 600; text-align: left; }
+    .lampiran-block { border: 1px solid var(--border); padding: 18px; margin-bottom: 20px; border-radius: 8px; background: #fff; }
+    .lampiran-images { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+    .lampiran-images div { text-align: center; }
+    .lampiran-images img { width: 100%; height: 250px; object-fit: cover; border: 1px solid var(--border); border-radius: 6px; }
+    .ttd-container { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; background: #fff; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
+    .ttd-box { width: 30%; font-size: 13px; }
+    .ttd-space { height: 70px; }
+    .page-break { margin-top: 40px; border-top: 3px dashed var(--border); padding-top: 20px; }
   </style>
 </head>
 <body>
