@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aplikasi Donasi & Program Bantuan</title>
+  <!-- Library html2pdf untuk cetak PDF rapi ke Drive -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #2563eb;
@@ -793,49 +795,34 @@
       var areaCetak = document.getElementById('cetakArea');
       if (!areaCetak) return;
       
-      // Gandakan HTML agar layar asli tidak rusak saat kita edit
-      var cloneHtml = areaCetak.cloneNode(true);
-      
-      // Trik Google Drive: Server Google kaku tidak paham CSS Grid.
-      // Jadi kita ubah tampilan 4 foto (Grid) menjadi Tabel 2x2 biasa sebelum dikirim.
-      var lampiranImages = cloneHtml.querySelectorAll('.lampiran-images');
-      lampiranImages.forEach(function(container) {
-        var divs = container.querySelectorAll('div');
-        if (divs.length === 0) return;
-        
-        var tableHtml = '<table style="width:100%; border:none;"><tr>';
-        divs.forEach(function(div, index) {
-          // Perkecil ukuran agar 4 foto muat di 1 kertas PDF server
-          var img = div.querySelector('img');
-          if (img) img.style = "width:250px; height:250px; object-fit:contain;";
-          
-          tableHtml += '<td style="border:none; text-align:center; padding:10px;">' + div.innerHTML + '</td>';
-          
-          // Ganti baris tabel ke bawah setiap kelipatan 2
-          if ((index + 1) % 2 === 0 && (index + 1) < divs.length) {
-            tableHtml += '</tr><tr>';
-          }
-        });
-        tableHtml += '</tr></table>';
-        
-        var newDiv = document.createElement('div');
-        newDiv.innerHTML = tableHtml;
-        container.parentNode.replaceChild(newDiv, container);
-      });
-      
       isSubmitting = true;
-      showLoading('Mengekspor PDF ke Google Drive...');
+      showLoading('Mengekspor & Menyimpan PDF ke Google Drive...');
       
-      // Kirim ke Backend
-      var payload = {
-        namaFile: "LPJ " + namaProgram,
-        htmlString: cloneHtml.innerHTML
+      // Pengaturan mesin cetak PDF dari browser
+      var opt = {
+        margin:       10, // Margin keliling 10mm
+        filename:     'LPJ ' + namaProgram + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true }, // Scale 2 agar gambar resolusi tinggi
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: 'css', before: '.page-break', after: '.lampiran-block' }
       };
       
-      callBackend('simpanPDFkeDrive', payload).then(function(res) {
+      // Buat PDF di layar HP/Laptop secara tak terlihat, lalu kirim
+      html2pdf().set(opt).from(areaCetak).outputPdf('datauristring').then(function(pdfBase64) {
+        // Buang teks pembuka kode sandinya
+        var base64Data = pdfBase64.split(',')[1];
+        
+        // Kirim PDF matang ke Backend
+        var payload = {
+          namaFile: "LPJ " + namaProgram,
+          fileBase64: base64Data
+        };
+        
+        return callBackend('simpanPDFkeDrive', payload);
+      }).then(function(res) {
         if (res.success) {
           toast('✅ Berhasil disimpan ke Drive!');
-          // Otomatis buka tab baru untuk melihat hasil PDF di Drive
           setTimeout(function() { window.open(res.data.url, '_blank'); }, 1500);
         } else {
           showError('Gagal: ' + res.message);
