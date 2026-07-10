@@ -962,6 +962,33 @@
         showError('Gagal membaca file gambar dari HP Anda.');
       }
     });
+
+    // ====== FUNGSI BARU: SIMPAN DATA PENERIMA ======
+    document.getElementById('formPenerima').addEventListener('submit', function (e) {
+      e.preventDefault(); // Mencegah halaman refresh
+      
+      handleFormSubmit({
+        form: this,
+        loadingMsg: 'Menyimpan data anak yatim...',
+        action: 'addPenerima',
+        successMsg: '✅ Data anak yatim berhasil didaftarkan!',
+        buildData: function () {
+          return {
+            nama: document.getElementById('pm_nama').value,
+            wilayah: document.getElementById('pm_wilayah').value,
+            sekolah: document.getElementById('pm_sekolah').value,
+            ortu: document.getElementById('pm_ortu').value,
+            umur: document.getElementById('pm_umur').value,
+            kontak: document.getElementById('pm_kontak').value
+          };
+        },
+        onSuccess: function () {
+          loadPenerimaTable(); // Otomatis memunculkan nama di tabel bawah
+          loadPenerimaOptions(); // Otomatis masuk ke pilihan dropdown jadwal distribusi
+        }
+      });
+    });
+
     // ---------- SHARED LOADERS ----------
     // TAMBAHAN: fungsi ini sebelumnya dipanggil (saat buka menu "Data Penerima"
     // dan setelah berhasil daftarkan penerima baru) tapi belum pernah dibuat,
