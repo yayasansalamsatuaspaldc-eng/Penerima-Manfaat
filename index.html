@@ -768,21 +768,23 @@
 
     // ====== HELPER CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
     function cetakLaporanFrontend(namaProgram) {
-      var judulAsli = "Aplikasi Donasi & Program Bantuan";
+      // 1. Ubah judul tab saat ini juga
       document.title = "LPJ " + namaProgram;
       
-      // Beri jeda 0.5 detik agar browser HP merespon perubahan nama judul
+      // 2. Beri jeda agak lama (1 detik) sebelum memanggil menu Print
+      // Ini wajib untuk HP Android agar sistem punya waktu membaca judul baru
       setTimeout(function() {
         window.print();
-      }, 500);
+      }, 1000);
 
-      // Kembalikan nama ke aslinya saat menu print ditutup
-      window.onafterprint = function() {
-        document.title = judulAsli;
-      };
-      
-      // Jaga-jaga jika HP menahan layar print lama, tahan judul hingga 15 detik
-      setTimeout(function() { document.title = judulAsli; }, 15000);
+      // 3. Kembalikan judul HANYA ketika menu Print sudah ditutup 
+      // (terdeteksi saat layar HP kembali disentuh/fokus)
+      window.addEventListener('focus', function() {
+        // Beri sedikit jeda ekstra sebelum mengembalikan judul
+        setTimeout(function() {
+          document.title = "Aplikasi Donasi & Program Bantuan";
+        }, 500);
+      }, { once: true });
     }
 
     // ====== HELPER UTALITAS: KONVERSI GAMBAR KE BASE64 ======
