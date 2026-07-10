@@ -768,10 +768,21 @@
 
     // ====== HELPER CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
     function cetakLaporanFrontend(namaProgram) {
-      var judulAsli = document.title;
+      var judulAsli = "Aplikasi Donasi & Program Bantuan";
       document.title = "LPJ " + namaProgram;
-      window.print();
-      setTimeout(function() { document.title = judulAsli; }, 1000);
+      
+      // Beri jeda 0.5 detik agar browser HP merespon perubahan nama judul
+      setTimeout(function() {
+        window.print();
+      }, 500);
+
+      // Kembalikan nama ke aslinya saat menu print ditutup
+      window.onafterprint = function() {
+        document.title = judulAsli;
+      };
+      
+      // Jaga-jaga jika HP menahan layar print lama, tahan judul hingga 15 detik
+      setTimeout(function() { document.title = judulAsli; }, 15000);
     }
 
     // ====== HELPER UTALITAS: KONVERSI GAMBAR KE BASE64 ======
