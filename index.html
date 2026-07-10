@@ -1098,6 +1098,37 @@
       }
     });
 
+    // ====== FUNGSI BARU: SIMPAN JADWAL DISTRIBUSI BANTUAN ======
+    document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
+      e.preventDefault(); // Mencegah layar refresh saat tombol ditekan
+      
+      var selPenerima = document.getElementById('py_penerima');
+      var namaPenerimaText = selPenerima.options[selPenerima.selectedIndex].text;
+
+      handleFormSubmit({
+        form: this,
+        loadingMsg: 'Menjadwalkan bantuan...',
+        action: 'addPenyaluran',
+        successMsg: '✅ Bantuan berhasil dijadwalkan!',
+        buildData: function () {
+          return {
+            programId: document.getElementById('py_program').value,
+            penerimaId: document.getElementById('py_penerima').value,
+            namaPenerima: namaPenerimaText,
+            pic: document.getElementById('py_pic').value,
+            wilayah: document.getElementById('py_wilayah').value,
+            itemBantuan: document.getElementById('py_item').value,
+            nilaiRp: document.getElementById('py_nilai').value,
+            tanggalJadwal: document.getElementById('py_tanggal').value
+          };
+        },
+        onSuccess: function () {
+          loadTerjadwal();       // Otomatis merefresh tabel jadwal di bawahnya
+          loadPenerimaOptions(); // Otomatis merefresh daftar pilihan anak yatim
+        }
+      });
+    });
+
     // ====== MODUL DISTRIBUSI & JADWAL (BARU) ======
 
     function loadTerjadwal() {
