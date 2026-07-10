@@ -758,11 +758,20 @@
       html += '</div>'; // End cetakArea
 
       // Tombol Aksi di Layar (Hanya tampil di HP/Web, hilang saat dicetak)
+      var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|']/g, '-').trim();
       html += '<div class="actions no-print" style="margin-top:25px; text-align:center;">';
-      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:var(--primary-dark);" onclick="window.print()">🖨️ Cetak / Simpan PDF Laporan</button>';
+      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:var(--primary-dark);" onclick="cetakLaporanFrontend(\'' + namaFileAman + '\')">🖨️ Cetak / Simpan PDF Laporan</button>';
       html += '</div>';
 
       document.getElementById('detailContent').innerHTML = html;
+    }
+
+    // ====== HELPER CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
+    function cetakLaporanFrontend(namaProgram) {
+      var judulAsli = document.title;
+      document.title = "LPJ " + namaProgram;
+      window.print();
+      setTimeout(function() { document.title = judulAsli; }, 1000);
     }
 
     // ====== HELPER UTALITAS: KONVERSI GAMBAR KE BASE64 ======
