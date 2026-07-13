@@ -27,7 +27,7 @@
       padding: 0;
     }
     header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      background: linear-gradient(135deg, #2563eb, #1e40af);
       color: white;
       padding: 20px 24px;
     }
@@ -1180,7 +1180,79 @@
       document.getElementById('formBukti').reset();
     }
 
+    // ====== FUNGSI BARU: SISTEM KEAMANAN PIN ======
+    var isAppUnlocked = false;
+
+    function initPinSystem() {
+      // Tambah aturan CSS langsung dari Javascript untuk mengunci form dan tombol aksi
+      var style = document.createElement('style');
+      style.innerHTML = `
+        .app-locked form .actions,
+        .app-locked .actions.no-print,
+        .app-locked button[onclick^="bukaModalBukti"] {
+            display: none !important;
+        }
+        .app-locked input, .app-locked select, .app-locked textarea {
+            pointer-events: none;
+            background-color: #f1f5f9;
+            color: #94a3b8;
+        }
+        #pinBtn {
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
+            color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Pasang gembok saat halaman pertama kali dibuka
+      document.body.classList.add('app-locked');
+
+      // Buat tombol gembok di header atas
+      var pinBtn = document.createElement('button');
+      pinBtn.id = 'pinBtn';
+      pinBtn.innerHTML = '🔒 Masukkan PIN';
+      pinBtn.onclick = promptPin;
+      
+      var header = document.querySelector('header');
+      header.style.justifyContent = 'space-between';
+      header.appendChild(pinBtn);
+    }
+
+    function promptPin() {
+      if (isAppUnlocked) {
+        toast('Aplikasi sudah terbuka.');
+        return;
+      }
+      
+      // Meminta pengguna mengetik PIN melalui Pop-up standar
+      var pin = prompt('Masukkan PIN untuk mengaktifkan Edit & Print (Default: 1234):');
+      if (!pin) return;
+
+      var btn = document.getElementById('pinBtn');
+      btn.innerHTML = '⏳ Mengecek...';
+
+      // Cek PIN ke server backend
+      callBackend('verifyPin', { pin: pin }).then(function(res) {
+        if (res.success) {
+          isAppUnlocked = true;
+          document.body.classList.remove('app-locked'); // Lepas gembok
+          btn.innerHTML = '🔓 Akses Terbuka';
+          btn.style.background = '#10b981';
+          btn.style.border = 'none';
+          toast('✅ PIN Benar! Anda sekarang bisa mengedit dan mencetak.');
+        } else {
+          btn.innerHTML = '🔒 Masukkan PIN';
+          showError('PIN Salah!');
+        }
+      }).catch(function(err) {
+        btn.innerHTML = '🔒 Masukkan PIN';
+        showError(err);
+      });
+    }
+
     // ---------- INIT START ----------
+    initPinSystem();
     loadDashboard();
   </script>
 </body>
