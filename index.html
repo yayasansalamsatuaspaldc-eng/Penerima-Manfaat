@@ -384,9 +384,9 @@
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
         
-        <label>Uang Transport / Operasional (Rp) - Boleh kosong</label>
-        <input type="number" id="bk_transport" placeholder="0">
-        
+        <label>Total Realisasi Belanja/Bantuan (Rp)</label>
+        <input type="number" id="bk_nilai" required placeholder="Contoh: 1550000">
+
         <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">1. Bukti Foto Kegiatan</label>
         <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
           <input type="file" id="bk_foto" accept="image/*" title="Foto Utama">
@@ -969,6 +969,7 @@
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
+          nilaiRealisasi: document.getElementById('bk_nilai').value, // <-- Tambahan data belanja asli
           uangTransport: document.getElementById('bk_transport').value,
           fotoBase64: dF1?.base64 || '', fotoMime: dF1?.mime || '', fotoName: dF1?.name || '',
           foto2Base64: dF2?.base64 || '', foto2Mime: dF2?.mime || '', foto2Name: dF2?.name || '',
@@ -1192,7 +1193,7 @@
 
       var html = '<table><thead><tr><th>Tgl Rencana</th><th>Nama Penerima</th><th>Bantuan</th><th>Aksi</th></tr></thead><tbody>';
       list.forEach(function(item) {
-        var btn = '<button class="btn small" onclick="bukaModalBukti(\'' + item.id + '\')">📸 Unggah Bukti</button>';
+        var btn = '<button class="btn small" onclick="bukaModalBukti(\'' + item.id + '\', \'' + item.nilaiRp + '\')">📸 Unggah Bukti</button>';
         html += '<tr>' +
           '<td>' + fmtDate(item.tanggalJadwal) + '</td>' +
           '<td><b>' + item.namaPenerima + '</b><br><span style="font-size:11px;color:var(--muted)">' + (item.wilayah || '-') + '</span></td>' +
@@ -1205,9 +1206,10 @@
     }
 
     // Fungsi untuk memunculkan dan menyembunyikan Pop-Up (Modal)
-    function bukaModalBukti(id) {
+    function bukaModalBukti(id, nilaiAwal) {
       document.getElementById('bk_id').value = id;
       document.getElementById('bk_tanggal').value = new Date().toISOString().split('T')[0];
+      document.getElementById('bk_nilai').value = nilaiAwal; // <-- Otomatis mengisi nominal target
       document.getElementById('modalBukti').style.display = 'block';
       document.getElementById('modalOverlay').style.display = 'block';
     }
