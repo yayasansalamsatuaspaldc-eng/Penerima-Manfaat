@@ -1284,6 +1284,13 @@
       });
     }
 function toggleStatus(programId) {
+      // Cek apakah gembok PIN sudah dibuka atau belum
+      if (!isAppUnlocked) {
+        toast('🔒 Anda harus memasukkan PIN terlebih dahulu!');
+        promptPin(); // Memunculkan jendela isian PIN otomatis
+        return;      // Hentikan proses ke bawah agar status tidak berubah
+      }
+
       // Pastikan aplikasi tidak sedang proses memuat hal lain
       if (isSubmitting) {
         toast('⏳ Mohon tunggu, proses lain sedang berjalan...');
