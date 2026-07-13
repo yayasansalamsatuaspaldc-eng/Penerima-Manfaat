@@ -1235,33 +1235,85 @@
             color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; 
             cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
+        /* CSS Tambahan untuk Pop-up PIN Profesional */
+        #customPinOverlay {
+            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+            z-index: 100000; justify-content: center; align-items: center;
+        }
+        #customPinBox {
+            background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;
+        }
+        #customPinBox h3 { margin: 0 0 10px; color: #1e293b; font-size: 18px; }
+        #customPinBox p { margin: 0 0 16px; color: #64748b; font-size: 13px; line-height: 1.4; }
+        #customPinInput {
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-size: 20px; text-align: center; letter-spacing: 4px; margin-bottom: 16px; outline: none;
+        }
+        #customPinInput:focus { border-color: #2563eb; }
+        .pin-actions { display: flex; gap: 10px; }
+        .pin-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .pin-btn-cancel { background: #f1f5f9; color: #475569; }
+        .pin-btn-submit { background: #2563eb; color: white; }
       `;
       document.head.appendChild(style);
       
+      // HTML Tambahan untuk Pop-up PIN Profesional
+      var modalHtml = `
+        <div id="customPinOverlay">
+          <div id="customPinBox">
+            <h3>Keamanan Sistem</h3>
+            <p>Masukkan PIN Administrator untuk membuka akses Edit & Cetak (Default: 1234).</p>
+            <input type="password" id="customPinInput" placeholder="••••" maxlength="6" inputmode="numeric">
+            <div class="pin-actions">
+              <button class="pin-btn-cancel" onclick="closeCustomPin()">Batal</button>
+              <button class="pin-btn-submit" onclick="submitCustomPin()">Buka Akses</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+
       // Pasang gembok saat halaman pertama kali dibuka
       document.body.classList.add('app-locked');
 
       // Buat tombol gembok di header atas
-      var pinBtn = document.createElement('button');
-      pinBtn.id = 'pinBtn';
-      pinBtn.innerHTML = '🔒 Masukkan PIN';
-      pinBtn.onclick = promptPin;
+      var varPinBtn = document.createElement('button');
+      varPinBtn.id = 'pinBtn';
+      varPinBtn.innerHTML = '🔒 Masukkan PIN';
+      varPinBtn.onclick = promptPin;
       
       var header = document.querySelector('header');
       header.style.justifyContent = 'space-between';
-      header.appendChild(pinBtn);
+      header.appendChild(varPinBtn);
     }
 
+    // Membuka Pop-up Custom
     function promptPin() {
       if (isAppUnlocked) {
         toast('Aplikasi sudah terbuka.');
         return;
       }
       
-      // Meminta pengguna mengetik PIN melalui Pop-up standar
-      var pin = prompt('Masukkan PIN untuk mengaktifkan Edit & Print (Default: 1234):');
-      if (!pin) return;
+      document.getElementById('customPinOverlay').style.display = 'flex';
+      document.getElementById('customPinInput').value = '';
+      setTimeout(function() { document.getElementById('customPinInput').focus(); }, 100);
+    }
 
+    // Menutup Pop-up Custom
+    function closeCustomPin() {
+      document.getElementById('customPinOverlay').style.display = 'none';
+    }
+
+    // Mengirim PIN dari Pop-up Custom ke Server
+    function submitCustomPin() {
+      var pin = document.getElementById('customPinInput').value;
+      if (!pin) {
+        toast('❌ PIN tidak boleh kosong');
+        return;
+      }
+      
+      closeCustomPin(); // Tutup pop-up
       var btn = document.getElementById('pinBtn');
       btn.innerHTML = '⏳ Mengecek...';
 
