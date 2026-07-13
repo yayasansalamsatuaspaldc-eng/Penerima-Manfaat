@@ -597,6 +597,8 @@
 
     function renderDashboard(programs) {
       var wrap = document.getElementById('dashboardList');
+      wrap.classList.remove('grid'); // Hapus ikatan grid dari wadah luar
+      
       if (!programs.length) {
         wrap.innerHTML = '<p class="empty">Belum ada program. Silakan buat program di menu "Program & Donasi".</p>';
         return;
@@ -610,7 +612,8 @@
       
       // 1. Menggambar kelompok Program Aktif di atas
       if (progAktif.length > 0) {
-        html += '<h2 style="grid-column: 1 / -1; font-size: 16px; margin: 0 0 10px 0; color: var(--primary-dark);">🟢 Program Aktif</h2>';
+        html += '<h2 style="font-size: 16px; margin: 0 0 10px 0; color: var(--primary-dark);">🟢 Program Aktif</h2>';
+        html += '<div class="grid">'; // Mulai wadah grid khusus kartu
         progAktif.forEach(function (p) {
           var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
           html += '<div class="card prog-card">' +
@@ -623,11 +626,13 @@
             '<div class="actions" style="margin-top:15px; display:flex; gap:8px;"><button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + p.id + '\')">Ubah Status</button><button class="btn small" style="flex:2;" onclick="openDetail(\'' + p.id + '\')">Detail & PDF</button></div>' +
             '</div>';
         });
+        html += '</div>'; // Tutup wadah grid
       }
       
       // 2. Menggambar kelompok Program Selesai/Tidak Aktif di bawah
       if (progTidakAktif.length > 0) {
-        html += '<h2 style="grid-column: 1 / -1; font-size: 16px; margin: 20px 0 10px 0; color: var(--muted);">⚪ Program Selesai / Tidak Aktif</h2>';
+        html += '<h2 style="font-size: 16px; margin: 20px 0 10px 0; color: var(--muted);">⚪ Program Selesai / Tidak Aktif</h2>';
+        html += '<div class="grid">'; // Mulai wadah grid khusus kartu
         progTidakAktif.forEach(function (p) {
           var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
           html += '<div class="card prog-card" style="opacity: 0.75;">' +
@@ -640,6 +645,7 @@
             '<div class="actions" style="margin-top:15px; display:flex; gap:8px;"><button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + p.id + '\')">Ubah Status</button><button class="btn small" style="flex:2;" onclick="openDetail(\'' + p.id + '\')">Detail & PDF</button></div>' +
             '</div>';
         });
+        html += '</div>'; // Tutup wadah grid
       }
       
       wrap.innerHTML = html;
