@@ -384,6 +384,9 @@
         <label>Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
         
+        <label>Uang Transport / Operasional (Rp) - Boleh kosong</label>
+        <input type="number" id="bk_transport" placeholder="0">
+        
         <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">1. Bukti Foto Kegiatan</label>
         <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
           <input type="file" id="bk_foto" accept="image/*" title="Foto Utama">
@@ -696,7 +699,8 @@
       html += '<h4>Ringkasan Keuangan</h4>';
       html += '<table class="print-table">';
       html += '<tr><td>Total Dana Masuk (Donasi)</td><td style="text-align:right; font-weight:bold; color:var(--green);">' + formatRp(detail.totalMasuk) + '</td></tr>';
-      html += '<tr><td>Total Dana Tersalurkan</td><td style="text-align:right; font-weight:bold; color:var(--primary);">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
+      html += '<tr><td>Total Dana Bantuan Tersalurkan</td><td style="text-align:right; font-weight:bold; color:var(--primary);">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
+      html += '<tr><td>Total Biaya Transport / Operasional</td><td style="text-align:right; font-weight:bold; color:#d97706;">' + formatRp(detail.totalTransport) + '</td></tr>';
       html += '<tr><td>Total Dana Terjadwal (Belum Selesai)</td><td style="text-align:right; font-weight:bold;">' + formatRp(detail.totalTerjadwal) + '</td></tr>';
       html += '<tr style="background-color:#f1f5f9;"><td><b>Sisa Saldo Akhir</b></td><td style="text-align:right; font-weight:bold; font-size:15px;">' + formatRp(detail.saldo) + '</td></tr>';
       html += '</table>';
@@ -965,6 +969,7 @@
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
+          uangTransport: document.getElementById('bk_transport').value,
           fotoBase64: dF1?.base64 || '', fotoMime: dF1?.mime || '', fotoName: dF1?.name || '',
           foto2Base64: dF2?.base64 || '', foto2Mime: dF2?.mime || '', foto2Name: dF2?.name || '',
           foto3Base64: dF3?.base64 || '', foto3Mime: dF3?.mime || '', foto3Name: dF3?.name || '',
