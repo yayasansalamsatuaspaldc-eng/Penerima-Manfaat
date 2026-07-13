@@ -776,7 +776,13 @@
           
           html += '<div class="lampiran-block">';
           html += '<h4 style="margin:0 0 8px; color:var(--primary-dark); font-size:16px;">KODE REFERENSI: ' + kode + '</h4>';
-          html += '<p style="margin:0 0 12px; font-size:13px;"><b>Nama Penerima:</b> ' + py.NamaPenerima + ' | <b>Wilayah:</b> ' + py.Wilayah + ' | <b>Tgl Realisasi:</b> ' + fmtDate(py.TanggalRealisasi) + '</p>';
+          html += '<p style="margin:0 0 6px; font-size:13px;"><b>Nama Penerima:</b> ' + py.NamaPenerima + ' | <b>Wilayah:</b> ' + py.Wilayah + ' | <b>Tgl Realisasi:</b> ' + fmtDate(py.TanggalRealisasi) + '</p>';
+          
+          var uangTransportPy = py.UangTransport || 0;
+          var totalGabungan = (Number(py.NilaiRp) || 0) + Number(uangTransportPy);
+          html += '<p style="margin:0 0 12px; font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:6px 10px; display:inline-block;">';
+          html += 'Total Belanja: <b>' + formatRp(py.NilaiRp) + '</b> + Total Transport: <b>' + formatRp(uangTransportPy) + '</b> = <b style="color:var(--primary);">' + formatRp(totalGabungan) + '</b>';
+          html += '</p>';
           
           // Kumpulkan semua gambar (Foto dan Kwitansi)
           var imagesHtml = '';
