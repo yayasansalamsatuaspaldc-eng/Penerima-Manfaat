@@ -601,21 +601,48 @@
         wrap.innerHTML = '<p class="empty">Belum ada program. Silakan buat program di menu "Program & Donasi".</p>';
         return;
       }
-      wrap.innerHTML = '';
-      programs.forEach(function (p) {
-        var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
-        var div = document.createElement('div');
-        div.className = 'card prog-card';
-        div.innerHTML =
-          '<h3>' + p.nama + '<span class="status-badge ' + (p.status === 'Selesai' ? 'selesai' : '') + '">' + p.status + '</span></h3>' +
-          '<div class="desc">' + (p.deskripsi || '') + '</div>' +
-          '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
-          '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
-          '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
-          (p.targetDana > 0 ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div><div class="row-num"><span style="color:var(--muted);font-size:11px;">Target: ' + formatRp(p.targetDana) + '</span><span style="font-size:11px;">' + pct + '%</span></div>' : '') +
-          '<div class="actions" style="margin-top:15px;"><button class="btn small" style="width:100%" onclick="openDetail(\'' + p.id + '\')">Lihat Detail & Cetak PDF</button></div>';
-        wrap.appendChild(div);
-      });
+      
+      // Memisahkan program menjadi dua kelompok
+      var progAktif = programs.filter(function(p) { return p.status !== 'Tidak Aktif' && p.status !== 'Selesai'; });
+      var progTidakAktif = programs.filter(function(p) { return p.status === 'Tidak Aktif' || p.status === 'Selesai'; });
+      
+      var html = '';
+      
+      // 1. Menggambar kelompok Program Aktif di atas
+      if (progAktif.length > 0) {
+        html += '<h2 style="grid-column: 1 / -1; font-size: 16px; margin: 0 0 10px 0; color: var(--primary-dark);">🟢 Program Aktif</h2>';
+        progAktif.forEach(function (p) {
+          var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
+          html += '<div class="card prog-card">' +
+            '<h3>' + p.nama + '<span class="status-badge">' + p.status + '</span></h3>' +
+            '<div class="desc">' + (p.deskripsi || '') + '</div>' +
+            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
+            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
+            '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
+            (p.targetDana > 0 ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div><div class="row-num"><span style="color:var(--muted);font-size:11px;">Target: ' + formatRp(p.targetDana) + '</span><span style="font-size:11px;">' + pct + '%</span></div>' : '') +
+            '<div class="actions" style="margin-top:15px; display:flex; gap:8px;"><button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + p.id + '\')">Ubah Status</button><button class="btn small" style="flex:2;" onclick="openDetail(\'' + p.id + '\')">Detail & PDF</button></div>' +
+            '</div>';
+        });
+      }
+      
+      // 2. Menggambar kelompok Program Selesai/Tidak Aktif di bawah
+      if (progTidakAktif.length > 0) {
+        html += '<h2 style="grid-column: 1 / -1; font-size: 16px; margin: 20px 0 10px 0; color: var(--muted);">⚪ Program Selesai / Tidak Aktif</h2>';
+        progTidakAktif.forEach(function (p) {
+          var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
+          html += '<div class="card prog-card" style="opacity: 0.75;">' +
+            '<h3>' + p.nama + '<span class="status-badge selesai">' + p.status + '</span></h3>' +
+            '<div class="desc">' + (p.deskripsi || '') + '</div>' +
+            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
+            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
+            '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
+            (p.targetDana > 0 ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div><div class="row-num"><span style="color:var(--muted);font-size:11px;">Target: ' + formatRp(p.targetDana) + '</span><span style="font-size:11px;">' + pct + '%</span></div>' : '') +
+            '<div class="actions" style="margin-top:15px; display:flex; gap:8px;"><button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + p.id + '\')">Ubah Status</button><button class="btn small" style="flex:2;" onclick="openDetail(\'' + p.id + '\')">Detail & PDF</button></div>' +
+            '</div>';
+        });
+      }
+      
+      wrap.innerHTML = html;
     }
 
     function openDetail(programId) {
@@ -1250,8 +1277,36 @@
         showError(err);
       });
     }
+function toggleStatus(programId) {
+      // Pastikan aplikasi tidak sedang proses memuat hal lain
+      if (isSubmitting) {
+        toast('⏳ Mohon tunggu, proses lain sedang berjalan...');
+        return;
+      }
+      
+      // Tanya konfirmasi agar tidak terklik secara tidak sengaja
+      var konfirmasi = confirm('Yakin ingin mengubah status program ini menjadi Aktif/Tidak Aktif?');
+      if (!konfirmasi) return;
 
-    // ---------- INIT START ----------
+      showLoading('Mengubah status program...');
+      isSubmitting = true;
+
+      // Menghubungi server Apps Script
+      callBackend('toggleProgramStatus', { programId: programId }).then(function (res) {
+        if (res.success) {
+          toast('✅ Status berhasil diubah!');
+          loadDashboard(); // Memuat ulang kartu-kartu dashboard
+        } else {
+          showError(res);
+        }
+      }).catch(function (err) {
+        showError(err);
+      }).finally(function () {
+        hideLoading();
+        isSubmitting = false;
+      });
+    }
+ // ---------- INIT START ----------
     initPinSystem();
     loadDashboard();
   </script>
