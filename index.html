@@ -762,8 +762,8 @@
       // Tombol Aksi di Layar (Hanya tampil di HP/Web, hilang saat dicetak)
       var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|']/g, '-').trim();
       html += '<div class="actions no-print" style="margin-top:25px; display:flex; flex-direction:column; gap:10px;">';
-      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:var(--primary-dark);" onclick="cetakLaporanFrontend(\'' + namaFileAman + '\')">🖨️ Cetak Manual (Simpan ke HP/Laptop)</button>';
-      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:#10b981;" onclick="simpanOtomatisKeDrive(\'' + namaFileAman + '\')">☁️ Simpan Otomatis ke Google Drive</button>';
+      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:#1e40af; color:#ffffff;" onclick="cetakLaporanFrontend(\'' + namaFileAman + '\')">🖨️ Cetak Manual (Simpan ke HP/Laptop)</button>';
+      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:#10b981; color:#ffffff;" onclick="simpanOtomatisKeDrive(\'' + namaFileAman + '\')">☁️ Simpan Otomatis ke Google Drive</button>';
       html += '</div>';
 
       document.getElementById('detailContent').innerHTML = html;
