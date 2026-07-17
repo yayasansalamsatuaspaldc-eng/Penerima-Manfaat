@@ -527,7 +527,7 @@
       if (!url) return null;
       var match = url.match(/[-\w]{25,}/);
       if (!match) return null;
-      return 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w300';
+      return 'https://drive.google.com/uc?export=view&id=' + match[0];
     }
 
     function buktiImgTag(url) {
