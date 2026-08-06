@@ -212,7 +212,7 @@
 </head>
 <body>
 
-  <header style="display:flex; align-items:center; gap:12px;">
+  <header id="appHeader" style="display:flex; align-items:center; gap:12px;">
     <button onclick="history.back()" style="background:rgba(255,255,255,0.15); border:none; color:white; width:34px; height:34px; border-radius:8px; font-size:16px; cursor:pointer; flex-shrink:0;" title="Kembali ke Portal">←</button>
     <div>
       <h1>📋 Aplikasi Donasi & Program Bantuan</h1>
@@ -428,6 +428,20 @@
   </div>
 
   <script>
+    // ---------- MODE EMBED (dibuka lewat iframe YASSA Hub) ----------
+    // Sebelumnya app ini SAMA SEKALI GAK BACA ?embed=1&tab=... dari Hub,
+    // jadi menu apapun yang diklik dari Hub selalu balik nampilin Dashboard
+    // (tab-nya kepilih tapi isinya gak ikut pindah). Sekarang dibaca di
+    // awal biar app ini kebuka langsung di tab yang diminta Hub.
+    var VALID_TABS = ['dashboard', 'programDonasi', 'penerima', 'distribusi'];
+    var EMBED_PARAMS = new URLSearchParams(window.location.search);
+    var IS_EMBEDDED = EMBED_PARAMS.get('embed') === '1';
+    var INITIAL_TAB = VALID_TABS.indexOf(EMBED_PARAMS.get('tab')) !== -1 ? EMBED_PARAMS.get('tab') : 'dashboard';
+    // Origin YASSA Hub yang boleh ngirim perintah pindah-tab lewat
+    // postMessage (biar ganti tab gak perlu reload halaman -- lihat
+    // listener 'message' di bagian INIT paling bawah).
+    var ALLOWED_HUB_ORIGINS = ['https://yayasansalamsatuaspaldc-eng.github.io'];
+
     // ---------- KONFIGURASI BACKEND (Apps Script) ----------
     // PENTING: Ganti dengan URL hasil "New deployment" terbaru dari Apps Script.
     var EXEC_URL = 'https://script.google.com/macros/s/AKfycbwwGzONxFV1YzwNCCEfsefBH54y1_WHzyEuS6deOvErxMNw4H95gpQRa5kpGih_jgdg/exec';
@@ -1390,8 +1404,31 @@ function toggleStatus(programId) {
       });
     }
  // ---------- INIT START ----------
+    // Kalau dibuka lewat iframe Hub: sembunyiin header & nav bawaan app ini
+    // (biar gak dobel sama header/menu Hub yang udah ngebungkus di luar),
+    // dan langsung pindah ke tab yang diminta Hub (bukan selalu Dashboard).
+    if (IS_EMBEDDED) {
+      var elHeader = document.getElementById('appHeader');
+      var elNav = document.getElementById('nav');
+      if (elHeader) elHeader.style.display = 'none';
+      if (elNav) elNav.style.display = 'none';
+    }
+
+    // Terima perintah pindah tab dari YASSA Hub lewat postMessage, dipakai
+    // pas app ini udah kebuka di iframe Hub (jadi ganti menu gak perlu
+    // reload/muat ulang halaman dari nol). Cuma nerima kalau originnya dari
+    // Hub yang sah, dan cuma sinyal ganti tampilan, bukan data rahasia.
+    window.addEventListener('message', function (e) {
+      if (ALLOWED_HUB_ORIGINS.indexOf(e.origin) === -1) return;
+      var msg = e.data;
+      if (!msg || msg.type !== 'YASSA_HUB_NAVIGATE') return;
+      if (VALID_TABS.indexOf(msg.tab) !== -1) {
+        showView(msg.tab);
+      }
+    });
+
     initPinSystem();
-    loadDashboard();
+    showView(INITIAL_TAB);
   </script>
 </body>
 </html>
