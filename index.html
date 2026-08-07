@@ -1309,10 +1309,21 @@
         }
         #customLoginBox h3 { margin: 0 0 10px; color: #1e293b; font-size: 18px; }
         #customLoginBox p { margin: 0 0 16px; color: #64748b; font-size: 13px; line-height: 1.4; }
+        
+        /* Modifikasi CSS untuk input dan tombol lihat password */
         #loginUsername, #loginPassword {
             width: 100%; padding: 11px 12px; border: 2px solid #e2e8f0; border-radius: 8px;
-            font-size: 14px; margin-bottom: 10px; outline: none; text-align: left;
+            font-size: 14px; outline: none; text-align: left; box-sizing: border-box;
         }
+        #loginUsername { margin-bottom: 10px; }
+        .password-container { position: relative; width: 100%; margin-bottom: 10px; }
+        #loginPassword { padding-right: 40px; /* Memberi ruang agar teks tidak tertutup ikon mata */ }
+        .toggle-password-btn {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center; padding: 4px;
+        }
+        
         #loginUsername:focus, #loginPassword:focus { border-color: #2563eb; }
         .login-actions { display: flex; gap: 10px; margin-top: 6px; }
         .login-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
@@ -1328,7 +1339,10 @@
             <h3>Login Sistem</h3>
             <p>Silakan masuk menggunakan akun Anda untuk mengakses sistem YASSA.</p>
             <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
-            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+            <div class="password-container">
+              <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+              <button type="button" id="togglePasswordBtn" class="toggle-password-btn" title="Tampilkan Password">👁️</button>
+            </div>
             <div class="login-actions">
               <button class="login-btn-submit" onclick="submitLogin()" id="loginBtn">Masuk</button>
             </div>
@@ -1337,6 +1351,23 @@
         </div>
       `;
       document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+      // Logika Javascript untuk tombol lihat password (Debugging siap)
+      document.getElementById('togglePasswordBtn').addEventListener('click', function(e) {
+          e.preventDefault(); // Mencegah form tersubmit tak sengaja
+          var passInput = document.getElementById('loginPassword');
+          if (passInput.type === 'password') {
+              passInput.type = 'text';
+              this.innerHTML = '🙈'; // Ikon mata tertutup
+              this.title = 'Sembunyikan Password';
+              console.log('[DEBUG] Mode: Tampilkan Password');
+          } else {
+              passInput.type = 'password';
+              this.innerHTML = '👁️'; // Ikon mata terbuka
+              this.title = 'Tampilkan Password';
+              console.log('[DEBUG] Mode: Sembunyikan Password');
+          }
+      });
 
       // Pasang gembok saat halaman pertama kali dibuka
       document.body.classList.add('app-locked');
