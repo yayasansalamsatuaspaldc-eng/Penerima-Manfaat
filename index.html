@@ -1376,6 +1376,10 @@
     function submitLogin() {
       var username = document.getElementById('loginUsername').value.trim();
       var password = document.getElementById('loginPassword').value;
+      
+      // Angkat notifikasi error ke lapisan paling depan (di atas modal login)
+      document.getElementById('toast').style.zIndex = '999999'; 
+      
       if (!username || !password) {
         toast('❌ Username & Password wajib diisi');
         return;
@@ -1383,6 +1387,8 @@
 
       var btn = document.getElementById('loginBtn');
       btn.innerHTML = '⏳ Mengecek...';
+      btn.disabled = true;       // Kunci tombol agar tidak terklik berkali-kali saat loading
+      btn.style.opacity = '0.7'; // Redupkan tombol sebagai penanda visual
 
       // Cek Username/Password ke server backend (sheet "Akun")
       callBackend('login', { username: username, password: password }).then(function(res) {
@@ -1392,10 +1398,14 @@
           toast('✅ Login berhasil! Selamat datang, ' + res.data.nama + '.');
         } else {
           btn.innerHTML = 'Masuk';
+          btn.disabled = false;
+          btn.style.opacity = '1';
           showError(res);
         }
       }).catch(function(err) {
         btn.innerHTML = 'Masuk';
+        btn.disabled = false;
+        btn.style.opacity = '1';
         showError(err);
       });
     }
