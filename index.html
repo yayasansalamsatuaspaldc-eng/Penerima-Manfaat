@@ -1458,18 +1458,38 @@
 
       // Karena login ada di modal awal, kita tidak perlu menyembunyikan tombol header lagi
       var badge = document.getElementById('userBadge');
-      badge.style.display = 'flex';
-      document.getElementById('userBadgeNama').textContent = user.nama;
-      var roleEl = document.getElementById('userBadgeRole');
-      roleEl.textContent = isEditor ? user.role : 'Hanya Lihat';
-      roleEl.className = 'role-tag' + (isEditor ? '' : ' viewer');
+      if (badge) {
+        badge.style.display = 'flex';
+        document.getElementById('userBadgeNama').textContent = user.nama;
+        var roleEl = document.getElementById('userBadgeRole');
+        roleEl.textContent = isEditor ? user.role : 'Hanya Lihat';
+        roleEl.className = 'role-tag' + (isEditor ? '' : ' viewer');
+      }
+      
+      // Menutup pop-up login jika otomatis masuk lewat SSO YASSA Hub
+      var loginOverlay = document.getElementById('customLoginOverlay');
+      if (loginOverlay) {
+        loginOverlay.style.display = 'none';
+      }
     }
 
     // Memulihkan sesi login dari penyimpanan browser (kalau ada & belum ditutup tab-nya)
     function restoreSession() {
       try {
+        // Cek sesi SSO dari YASSA Hub (karena 1 domain Github Pages, sessionStorage saling berbagi)
+        var hubSaved = sessionStorage.getItem('yassa_user');
         var saved = sessionStorage.getItem('yassaSession');
-        if (saved) {
+        
+        if (hubSaved) {
+          var hubUser = JSON.parse(hubSaved);
+          // Adaptasi format user dari Hub ke format lokal Penerima Manfaat
+          var adaptedUser = {
+            username: hubUser.username || hubUser.email,
+            nama: hubUser.nama,
+            role: String(hubUser.role || '').toLowerCase() // Ubah SUPERADMIN jadi superadmin agar sinkron
+          };
+          applyLoginState(adaptedUser, false);
+        } else if (saved) {
           applyLoginState(JSON.parse(saved), false);
         } else {
           promptLogin(); // Langsung paksa login jika tidak ada sesi aktif
