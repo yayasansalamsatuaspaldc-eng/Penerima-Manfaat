@@ -576,6 +576,11 @@
     // (sukses, gagal, atau error jaringan) menggunakan finally().
     function handleFormSubmit(opts) {
       // opts: { form, loadingMsg, buildData, action, successMsg, onSuccess }
+      if (!isEditor()) {
+        toast('🔒 Hanya Superadmin/Admin yang bisa menyimpan data. Silakan login.');
+        promptLogin();
+        return;
+      }
       if (isSubmitting) {
         toast('⏳ Mohon tunggu, permintaan sebelumnya sedang diproses...');
         return;
@@ -833,6 +838,11 @@
 
     // ====== HELPER CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
     function cetakLaporanFrontend(namaProgram) {
+      if (!isEditor()) {
+        toast('🔒 Hanya Superadmin/Admin yang bisa mencetak laporan. Silakan login.');
+        promptLogin();
+        return;
+      }
       // 1. Ubah judul tab saat ini juga
       document.title = "LPJ " + namaProgram;
       
@@ -852,6 +862,11 @@
 
     // ====== FUNGSI BARU: SIMPAN OTOMATIS KE DRIVE ======
     function simpanOtomatisKeDrive(namaProgram) {
+      if (!isEditor()) {
+        toast('🔒 Hanya Superadmin/Admin yang bisa mencetak/menyimpan laporan. Silakan login.');
+        promptLogin();
+        return;
+      }
       if (isSubmitting) return; 
       
       var areaCetak = document.getElementById('cetakArea');
@@ -1232,6 +1247,11 @@
 
     // Fungsi untuk memunculkan dan menyembunyikan Pop-Up (Modal)
     function bukaModalBukti(id, nilaiAwal) {
+      if (!isEditor()) {
+        toast('🔒 Hanya Superadmin/Admin yang bisa mengunggah bukti. Silakan login.');
+        promptLogin();
+        return;
+      }
       document.getElementById('bk_id').value = id;
       document.getElementById('bk_tanggal').value = new Date().toISOString().split('T')[0];
       document.getElementById('bk_nilai').value = nilaiAwal; // <-- Otomatis mengisi nominal target
@@ -1246,9 +1266,9 @@
     }
 
     // ====== FUNGSI BARU: SISTEM KEAMANAN PIN ======
-    var isAppUnlocked = false;
+    var currentUser = null; // {username, nama, role, canEdit} - null berarti belum login (mode hanya-lihat)
 
-    function initPinSystem() {
+    function initLoginSystem() {
       // Tambah aturan CSS langsung dari Javascript untuk mengunci form dan tombol aksi
       var style = document.createElement('style');
       style.innerHTML = `
@@ -1262,45 +1282,64 @@
             background-color: #f1f5f9;
             color: #94a3b8;
         }
-        #pinBtn {
+        #loginBtn {
             background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
             color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap:6px;
         }
-        /* CSS Tambahan untuk Pop-up PIN Profesional */
-        #customPinOverlay {
+        #userBadge {
+            display: none; align-items: center; gap: 8px; background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 5px 6px 5px 12px;
+            font-size: 12.5px; color: white; white-space: nowrap;
+        }
+        #userBadge b { font-weight: 700; }
+        #userBadge .role-tag {
+            font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px;
+            border-radius: 999px; background: rgba(255,255,255,0.25);
+        }
+        #userBadge .role-tag.viewer { background: rgba(0,0,0,0.2); }
+        #logoutBtn {
+            background: rgba(255,255,255,0.18); border: none; color: white; border-radius: 5px;
+            padding: 5px 9px; font-size: 12px; cursor: pointer;
+        }
+        #logoutBtn:hover { background: rgba(255,255,255,0.32); }
+        /* CSS Tambahan untuk Pop-up Login Profesional */
+        #customLoginOverlay {
             display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
             z-index: 100000; justify-content: center; align-items: center;
         }
-        #customPinBox {
-            background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 320px;
+        #customLoginBox {
+            background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 340px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;
         }
-        #customPinBox h3 { margin: 0 0 10px; color: #1e293b; font-size: 18px; }
-        #customPinBox p { margin: 0 0 16px; color: #64748b; font-size: 13px; line-height: 1.4; }
-        #customPinInput {
-            width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px;
-            font-size: 20px; text-align: center; letter-spacing: 4px; margin-bottom: 16px; outline: none;
+        #customLoginBox h3 { margin: 0 0 10px; color: #1e293b; font-size: 18px; }
+        #customLoginBox p { margin: 0 0 16px; color: #64748b; font-size: 13px; line-height: 1.4; }
+        #loginUsername, #loginPassword {
+            width: 100%; padding: 11px 12px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-size: 14px; margin-bottom: 10px; outline: none; text-align: left;
         }
-        #customPinInput:focus { border-color: #2563eb; }
-        .pin-actions { display: flex; gap: 10px; }
-        .pin-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .pin-btn-cancel { background: #f1f5f9; color: #475569; }
-        .pin-btn-submit { background: #2563eb; color: white; }
+        #loginUsername:focus, #loginPassword:focus { border-color: #2563eb; }
+        .login-actions { display: flex; gap: 10px; margin-top: 6px; }
+        .login-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .login-btn-cancel { background: #f1f5f9; color: #475569; }
+        .login-btn-submit { background: #2563eb; color: white; }
+        .login-hint { margin-top: 12px !important; font-size: 11px !important; color: #94a3b8 !important; }
       `;
       document.head.appendChild(style);
       
-      // HTML Tambahan untuk Pop-up PIN Profesional
+      // HTML Tambahan untuk Pop-up Login Profesional
       var modalHtml = `
-        <div id="customPinOverlay">
-          <div id="customPinBox">
-            <h3>Keamanan Sistem</h3>
-            <p>Masukkan PIN Administrator untuk membuka akses Edit & Cetak (Default: 1234).</p>
-            <input type="password" id="customPinInput" placeholder="••••" maxlength="6" inputmode="numeric">
-            <div class="pin-actions">
-              <button class="pin-btn-cancel" onclick="closeCustomPin()">Batal</button>
-              <button class="pin-btn-submit" onclick="submitCustomPin()">Buka Akses</button>
+        <div id="customLoginOverlay">
+          <div id="customLoginBox">
+            <h3>Login Sistem</h3>
+            <p>Masuk untuk membuka akses Edit &amp; Cetak. Tanpa login, data tetap bisa dilihat.</p>
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+            <div class="login-actions">
+              <button class="login-btn-cancel" onclick="closeLoginModal()">Batal</button>
+              <button class="login-btn-submit" onclick="submitLogin()">Masuk</button>
             </div>
+            <p class="login-hint">Butuh akun? Hubungi Superadmin untuk didaftarkan di sheet "Akun".</p>
           </div>
         </div>
       `;
@@ -1309,70 +1348,127 @@
       // Pasang gembok saat halaman pertama kali dibuka
       document.body.classList.add('app-locked');
 
-      // Buat tombol gembok di header atas
-      var varPinBtn = document.createElement('button');
-      varPinBtn.id = 'pinBtn';
-      varPinBtn.innerHTML = '🔒 Masukkan PIN';
-      varPinBtn.onclick = promptPin;
-      
+      // Buat tombol Login di header atas
+      var varLoginBtn = document.createElement('button');
+      varLoginBtn.id = 'loginBtn';
+      varLoginBtn.innerHTML = '🔒 Login';
+      varLoginBtn.onclick = promptLogin;
+
+      // Buat badge user (nama + role) + tombol logout, tersembunyi sampai login berhasil
+      var varUserBadge = document.createElement('div');
+      varUserBadge.id = 'userBadge';
+      varUserBadge.innerHTML = '<span><b id="userBadgeNama"></b> <span class="role-tag" id="userBadgeRole"></span></span><button id="logoutBtn" onclick="logout()">Keluar</button>';
+
       var header = document.querySelector('header');
       header.style.justifyContent = 'space-between';
-      header.appendChild(varPinBtn);
+      header.appendChild(varLoginBtn);
+      header.appendChild(varUserBadge);
+
+      // Coba pulihkan sesi login sebelumnya (tersimpan di browser ini saja)
+      restoreSession();
     }
 
-    // Membuka Pop-up Custom
-    function promptPin() {
-      if (isAppUnlocked) {
-        toast('Aplikasi sudah terbuka.');
+    // Membuka Pop-up Login
+    function promptLogin() {
+      if (currentUser) {
+        toast('Anda sudah login sebagai ' + currentUser.nama + '.');
         return;
       }
-      
-      document.getElementById('customPinOverlay').style.display = 'flex';
-      document.getElementById('customPinInput').value = '';
-      setTimeout(function() { document.getElementById('customPinInput').focus(); }, 100);
+
+      document.getElementById('customLoginOverlay').style.display = 'flex';
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('loginPassword').value = '';
+      setTimeout(function() { document.getElementById('loginUsername').focus(); }, 100);
     }
 
-    // Menutup Pop-up Custom
-    function closeCustomPin() {
-      document.getElementById('customPinOverlay').style.display = 'none';
+    // Menutup Pop-up Login
+    function closeLoginModal() {
+      document.getElementById('customLoginOverlay').style.display = 'none';
     }
 
-    // Mengirim PIN dari Pop-up Custom ke Server
-    function submitCustomPin() {
-      var pin = document.getElementById('customPinInput').value;
-      if (!pin) {
-        toast('❌ PIN tidak boleh kosong');
+    // Mengirim Username/Password dari Pop-up Login ke Server
+    function submitLogin() {
+      var username = document.getElementById('loginUsername').value.trim();
+      var password = document.getElementById('loginPassword').value;
+      if (!username || !password) {
+        toast('❌ Username & Password wajib diisi');
         return;
       }
-      
-      closeCustomPin(); // Tutup pop-up
-      var btn = document.getElementById('pinBtn');
+
+      var btn = document.getElementById('loginBtn');
       btn.innerHTML = '⏳ Mengecek...';
 
-      // Cek PIN ke server backend
-      callBackend('verifyPin', { pin: pin }).then(function(res) {
+      // Cek Username/Password ke server backend (sheet "Akun")
+      callBackend('login', { username: username, password: password }).then(function(res) {
         if (res.success) {
-          isAppUnlocked = true;
-          document.body.classList.remove('app-locked'); // Lepas gembok
-          btn.innerHTML = '🔓 Akses Terbuka';
-          btn.style.background = '#10b981';
-          btn.style.border = 'none';
-          toast('✅ PIN Benar! Anda sekarang bisa mengedit dan mencetak.');
+          closeLoginModal();
+          applyLoginState(res.data, true);
+          toast('✅ Login berhasil! Selamat datang, ' + res.data.nama + '.');
         } else {
-          btn.innerHTML = '🔒 Masukkan PIN';
-          showError('PIN Salah!');
+          btn.innerHTML = '🔒 Login';
+          showError(res);
         }
       }).catch(function(err) {
-        btn.innerHTML = '🔒 Masukkan PIN';
+        btn.innerHTML = '🔒 Login';
         showError(err);
       });
     }
+
+    // Menerapkan status login ke tampilan (dipanggil saat login sukses ATAU saat sesi dipulihkan)
+    function applyLoginState(user, persist) {
+      currentUser = user;
+
+      if (persist) {
+        try { sessionStorage.setItem('yassaSession', JSON.stringify(user)); } catch(e) {}
+      }
+
+      var isEditor = user.role === 'superadmin' || user.role === 'admin';
+      if (isEditor) {
+        document.body.classList.remove('app-locked');
+      } else {
+        document.body.classList.add('app-locked');
+      }
+
+      document.getElementById('loginBtn').style.display = 'none';
+      var badge = document.getElementById('userBadge');
+      badge.style.display = 'flex';
+      document.getElementById('userBadgeNama').textContent = user.nama;
+      var roleEl = document.getElementById('userBadgeRole');
+      roleEl.textContent = isEditor ? user.role : 'Hanya Lihat';
+      roleEl.className = 'role-tag' + (isEditor ? '' : ' viewer');
+    }
+
+    // Memulihkan sesi login dari penyimpanan browser (kalau ada & belum ditutup tab-nya)
+    function restoreSession() {
+      try {
+        var saved = sessionStorage.getItem('yassaSession');
+        if (saved) applyLoginState(JSON.parse(saved), false);
+      } catch(e) {}
+    }
+
+    // Keluar dari akun (kembali ke mode hanya-lihat)
+    function logout() {
+      currentUser = null;
+      try { sessionStorage.removeItem('yassaSession'); } catch(e) {}
+      document.body.classList.add('app-locked');
+      document.getElementById('userBadge').style.display = 'none';
+      var btn = document.getElementById('loginBtn');
+      btn.style.display = 'flex';
+      btn.innerHTML = '🔒 Login';
+      toast('Anda telah keluar dari akun.');
+    }
+
+    // Cek apakah user yang sedang login boleh mengedit & mencetak
+    function isEditor() {
+      return !!currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'admin');
+    }
+
 function toggleStatus(programId) {
-      // Cek apakah gembok PIN sudah dibuka atau belum
-      if (!isAppUnlocked) {
-        toast('🔒 Anda harus memasukkan PIN terlebih dahulu!');
-        promptPin(); // Memunculkan jendela isian PIN otomatis
-        return;      // Hentikan proses ke bawah agar status tidak berubah
+      // Cek apakah user sudah login dengan role yang boleh mengedit
+      if (!isEditor()) {
+        toast('🔒 Anda harus login sebagai Superadmin/Admin terlebih dahulu!');
+        promptLogin(); // Memunculkan jendela login otomatis
+        return;         // Hentikan proses ke bawah agar status tidak berubah
       }
 
       // Pastikan aplikasi tidak sedang proses memuat hal lain
@@ -1427,7 +1523,7 @@ function toggleStatus(programId) {
       }
     });
 
-    initPinSystem();
+    initLoginSystem();
     showView(INITIAL_TAB);
   </script>
 </body>
