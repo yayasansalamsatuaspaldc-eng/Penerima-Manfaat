@@ -1282,11 +1282,6 @@
             background-color: #f1f5f9;
             color: #94a3b8;
         }
-        #loginBtn {
-            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
-            color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap:6px;
-        }
         #userBadge {
             display: none; align-items: center; gap: 8px; background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 5px 6px 5px 12px;
@@ -1305,7 +1300,7 @@
         #logoutBtn:hover { background: rgba(255,255,255,0.32); }
         /* CSS Tambahan untuk Pop-up Login Profesional */
         #customLoginOverlay {
-            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+            display: none; position: fixed; inset: 0; background: #f4f6fb; /* Background solid menutupi dashboard */
             z-index: 100000; justify-content: center; align-items: center;
         }
         #customLoginBox {
@@ -1321,8 +1316,7 @@
         #loginUsername:focus, #loginPassword:focus { border-color: #2563eb; }
         .login-actions { display: flex; gap: 10px; margin-top: 6px; }
         .login-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .login-btn-cancel { background: #f1f5f9; color: #475569; }
-        .login-btn-submit { background: #2563eb; color: white; }
+        .login-btn-submit { background: #2563eb; color: white; width: 100%; }
         .login-hint { margin-top: 12px !important; font-size: 11px !important; color: #94a3b8 !important; }
       `;
       document.head.appendChild(style);
@@ -1332,12 +1326,11 @@
         <div id="customLoginOverlay">
           <div id="customLoginBox">
             <h3>Login Sistem</h3>
-            <p>Masuk untuk membuka akses Edit &amp; Cetak. Tanpa login, data tetap bisa dilihat.</p>
+            <p>Silakan masuk menggunakan akun Anda untuk mengakses sistem YASSA.</p>
             <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
             <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
             <div class="login-actions">
-              <button class="login-btn-cancel" onclick="closeLoginModal()">Batal</button>
-              <button class="login-btn-submit" onclick="submitLogin()">Masuk</button>
+              <button class="login-btn-submit" onclick="submitLogin()" id="loginBtn">Masuk</button>
             </div>
             <p class="login-hint">Butuh akun? Hubungi Superadmin untuk didaftarkan di sheet "Akun".</p>
           </div>
@@ -1348,12 +1341,6 @@
       // Pasang gembok saat halaman pertama kali dibuka
       document.body.classList.add('app-locked');
 
-      // Buat tombol Login di header atas
-      var varLoginBtn = document.createElement('button');
-      varLoginBtn.id = 'loginBtn';
-      varLoginBtn.innerHTML = '🔒 Login';
-      varLoginBtn.onclick = promptLogin;
-
       // Buat badge user (nama + role) + tombol logout, tersembunyi sampai login berhasil
       var varUserBadge = document.createElement('div');
       varUserBadge.id = 'userBadge';
@@ -1361,7 +1348,6 @@
 
       var header = document.querySelector('header');
       header.style.justifyContent = 'space-between';
-      header.appendChild(varLoginBtn);
       header.appendChild(varUserBadge);
 
       // Coba pulihkan sesi login sebelumnya (tersimpan di browser ini saja)
@@ -1405,11 +1391,11 @@
           applyLoginState(res.data, true);
           toast('✅ Login berhasil! Selamat datang, ' + res.data.nama + '.');
         } else {
-          btn.innerHTML = '🔒 Login';
+          btn.innerHTML = 'Masuk';
           showError(res);
         }
       }).catch(function(err) {
-        btn.innerHTML = '🔒 Login';
+        btn.innerHTML = 'Masuk';
         showError(err);
       });
     }
@@ -1429,7 +1415,7 @@
         document.body.classList.add('app-locked');
       }
 
-      document.getElementById('loginBtn').style.display = 'none';
+      // Karena login ada di modal awal, kita tidak perlu menyembunyikan tombol header lagi
       var badge = document.getElementById('userBadge');
       badge.style.display = 'flex';
       document.getElementById('userBadgeNama').textContent = user.nama;
@@ -1442,20 +1428,30 @@
     function restoreSession() {
       try {
         var saved = sessionStorage.getItem('yassaSession');
-        if (saved) applyLoginState(JSON.parse(saved), false);
-      } catch(e) {}
+        if (saved) {
+          applyLoginState(JSON.parse(saved), false);
+        } else {
+          promptLogin(); // Langsung paksa login jika tidak ada sesi aktif
+        }
+      } catch(e) {
+        promptLogin();
+      }
     }
 
-    // Keluar dari akun (kembali ke mode hanya-lihat)
+    // Keluar dari akun (kembali terkunci di form login)
     function logout() {
       currentUser = null;
       try { sessionStorage.removeItem('yassaSession'); } catch(e) {}
       document.body.classList.add('app-locked');
       document.getElementById('userBadge').style.display = 'none';
-      var btn = document.getElementById('loginBtn');
-      btn.style.display = 'flex';
-      btn.innerHTML = '🔒 Login';
       toast('Anda telah keluar dari akun.');
+      
+      // Reset form login
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginBtn').innerHTML = 'Masuk';
+      
+      promptLogin(); // Paksa munculkan modal login lagi
     }
 
     // Cek apakah user yang sedang login boleh mengedit & mencetak
