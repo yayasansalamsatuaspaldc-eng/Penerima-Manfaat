@@ -1277,7 +1277,7 @@
         .app-locked button[onclick^="bukaModalBukti"] {
             display: none !important;
         }
-        .app-locked input, .app-locked select, .app-locked textarea {
+        .app-locked input:not(#loginUsername):not(#loginPassword), .app-locked select, .app-locked textarea {
             pointer-events: none;
             background-color: #f1f5f9;
             color: #94a3b8;
