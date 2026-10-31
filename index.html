@@ -1476,23 +1476,31 @@
     // Memulihkan sesi login dari penyimpanan browser (kalau ada & belum ditutup tab-nya)
     function restoreSession() {
       try {
-        // Cek sesi SSO dari YASSA Hub (karena 1 domain Github Pages, sessionStorage saling berbagi)
-        var hubSaved = sessionStorage.getItem('yassa_user');
-        var saved = sessionStorage.getItem('yassaSession');
-        
-        if (hubSaved) {
+        // SSO dari YASSA Hub. Hub menyimpan sesi di localStorage ("yassa_user"),
+        // sedangkan sessionStorage dulu yang dibaca di sini -> selalu kosong ->
+        // login manual muncul. Sekarang cek keduanya + token Hub dari URL (?hubToken=).
+        var hubSaved = null;
+        try { hubSaved = localStorage.getItem('yassa_user'); } catch (e) {}
+        if (!hubSaved) { try { hubSaved = sessionStorage.getItem('yassa_user'); } catch (e) {} }
+        var hubTokenUrl = EMBED_PARAMS.get('hubToken');
+        var hubTokenLs = null;
+        try { hubTokenLs = localStorage.getItem('yassa_token'); } catch (e) {}
+        var saved = null;
+        try { saved = sessionStorage.getItem('yassaSession'); } catch (e) {}
+
+        // Sesi Hub dianggap sah hanya kalau ada token Hub (dari URL atau localStorage)
+        if (hubSaved && (hubTokenUrl || hubTokenLs)) {
           var hubUser = JSON.parse(hubSaved);
-          // Adaptasi format user dari Hub ke format lokal Penerima Manfaat
           var adaptedUser = {
             username: hubUser.username || hubUser.email,
             nama: hubUser.nama,
-            role: String(hubUser.role || '').toLowerCase() // Ubah SUPERADMIN jadi superadmin agar sinkron
+            role: String(hubUser.role || '').toLowerCase()
           };
-          applyLoginState(adaptedUser, false);
+          applyLoginState(adaptedUser, true);
         } else if (saved) {
           applyLoginState(JSON.parse(saved), false);
         } else {
-          promptLogin(); // Langsung paksa login jika tidak ada sesi aktif
+          promptLogin();
         }
       } catch(e) {
         promptLogin();
@@ -1581,6 +1589,7 @@ function toggleStatus(programId) {
     });
 
     initLoginSystem();
+    try { if (EMBED_PARAMS.get('hubToken')) { EMBED_PARAMS.delete('hubToken'); history.replaceState(null, '', location.pathname + '?' + EMBED_PARAMS.toString()); } } catch (e) {}
     showView(INITIAL_TAB);
   </script>
 </body>
