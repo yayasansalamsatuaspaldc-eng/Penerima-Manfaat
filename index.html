@@ -1,237 +1,1264 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aplikasi Donasi & Program Bantuan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Donasi &amp; Program Bantuan — YASSA</title>
+  <meta name="description" content="Sistem pengelolaan program bantuan, donasi masuk, database penerima manfaat, distribusi korwil, dan laporan pertanggungjawaban Yayasan Salam Satu Aspal.">
+  <meta property="og:title" content="Aplikasi Donasi &amp; Program Bantuan — YASSA">
+  <meta property="og:description" content="Sistem pengelolaan program bantuan dan laporan pertanggungjawaban Yayasan Salam Satu Aspal.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Typography: Plus Jakarta Sans (Display & Body) + JetBrains Mono (Tabular Numerals & Codes) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Library html2pdf untuk cetak PDF rapi ke Drive -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Library D3.js v7 untuk grafik tren donasi bulanan -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
   <style>
     :root {
-      --primary: #2563eb;f
-      --primary-dark: #1e40af;
-      --green: #16a34a;
-      --red: #dc2626;
-      --bg: #f4f6fb;
+      /* 60% Neutral Canvas */
+      --bg: #f8fafc;
+      /* 30% Structural Surfaces */
       --card: #ffffff;
+      --surface-muted: #f1f5f9;
+      --surface-hover: #f8fafc;
       --border: #e2e8f0;
-      --text: #1e293b;
+      --border-strong: #cbd5e1;
+      /* Typography & Ink */
+      --text: #0f172a;
+      --text-secondary: #334155;
       --muted: #64748b;
+      /* 10% Primary Accent */
+      --primary: #1d4ed8;
+      --primary-dark: #1e3a8a;
+      --primary-soft: #eff6ff;
+      /* Semantic Status */
+      --green: #15803d;
+      --green-soft: #dcfce7;
+      --amber: #b45309;
+      --amber-soft: #fef3c7;
+      --red: #b91c1c;
+      --red-soft: #fee2e2;
+      /* Radii & Motion */
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
-    * { box-sizing: border-box; }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
     body {
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0;
       padding: 0;
-    }
-    header {
-      background: linear-gradient(135deg, #2563eb, #1e40af);
-      color: white;
-      padding: 20px 24px;
-    }
-    header h1 { margin: 0; font-size: 20px; }
-    header p { margin: 4px 0 0; opacity: 0.85; font-size: 13px; }
-
-    nav {
-      display: flex;
-      gap: 4px;
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 0 16px;
-      overflow-x: auto;
-    }
-    nav button {
-      border: none;
-      background: none;
-      padding: 14px 16px;
       font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .mono,
+    .num {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ====== TOP BAR (Strict 3-Zone Contract + Embed Compatibility) ====== */
+    .topbar-shell {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    header#appHeader {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand-zone {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex-shrink: 0;
+    }
+
+    .back-portal-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+    }
+
+    .back-portal-btn:hover {
+      background: var(--surface-muted);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .back-portal-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .brand-wordmark {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    nav#nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    nav#nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    nav#nav button {
+      border: none;
+      background: transparent;
+      height: 100%;
+      padding: 0 14px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
       cursor: pointer;
       color: var(--muted);
-      border-bottom: 3px solid transparent;
+      border-bottom: 2px solid transparent;
       white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out);
     }
-    nav button.active { color: var(--primary); border-color: var(--primary); font-weight: 600; }
 
-    main { padding: 20px; max-width: 1000px; margin: 0 auto; }
-    .view { display: none; }
-    .view.active { display: block; }
+    nav#nav button:hover {
+      color: var(--text);
+    }
 
+    nav#nav button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    nav#nav button:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: -4px;
+    }
+
+    .nav-icon {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    /* ====== MAIN VIEWPORT ====== */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 64px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+      animation: fadeSlideIn 180ms var(--ease-out);
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .view.active {
+        animation: none;
+      }
+    }
+
+    /* ====== PAGE HEADER & SECTION INTRO ====== */
+    .page-intro {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-intro h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-wrap: balance;
+    }
+
+    .page-intro p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    /* ====== CARDS & GRIDS (Single-Elevation, Hairline Borders) ====== */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .card-header p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ====== KPI SUMMARY STRIP ====== */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .kpi-cell {
+      padding: 18px 20px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .kpi-cell:last-child {
+      border-right: none;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.primary { color: var(--primary); }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ====== D3 MONTHLY DONATION TREND CHART ====== */
+    .chart-card {
+      padding: 20px 24px 18px;
+      margin-bottom: 20px;
+    }
+
+    .chart-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px; }
 
-    .prog-card h3 { margin: 0 0 4px; font-size: 16px; }
-    .prog-card .desc { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
-    .status-badge {
-      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
-      background: #dcfce7; color: var(--green); font-weight: 600; margin-left: 6px;
+    .chart-header h3 {
+      margin: 0 0 3px;
+      font-size: 15.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
     }
-    .status-badge.selesai { background: #e2e8f0; color: var(--muted); }
 
-    .bar-wrap { background: #eef1f6; border-radius: 6px; height: 10px; overflow: hidden; margin: 8px 0; }
-    .bar-fill { height: 100%; background: var(--green); }
-    .row-num { display: flex; justify-content: space-between; font-size: 13px; margin: 3px 0; }
-    .row-num b { font-weight: 600; }
-    .actions { display: flex; gap: 8px; margin-top: 10px; }
+    .chart-header p {
+      margin: 0;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .chart-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .chart-meta b {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .chart-body {
+      position: relative;
+      width: 100%;
+      height: 240px;
+    }
+
+    .chart-body svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .chart-empty {
+      height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      background: var(--surface-hover);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      text-align: center;
+      padding: 16px;
+    }
+
+    .d3-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      line-height: 1.45;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+      opacity: 0;
+      transform: translate(-50%, -8px);
+      transition: opacity 120ms var(--ease-out), transform 120ms var(--ease-out);
+      z-index: 20;
+      white-space: nowrap;
+    }
+
+    .d3-tooltip.visible {
+      opacity: 1;
+      transform: translate(-50%, -12px);
+    }
+
+    .d3-tooltip .tt-month {
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 2px;
+      font-size: 11.5px;
+    }
+
+    .d3-tooltip .tt-amount {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #ffffff;
+    }
+
+    .d3-tooltip .tt-count {
+      font-size: 11.5px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    /* ====== FILTER TOOLBAR ====== */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1 1 260px;
+      max-width: 380px;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px 0 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--card);
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+    }
+
+    .segmented {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .segmented button {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+    }
+
+    .segmented button.active {
+      background: var(--card);
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+
+    /* ====== PROGRAM CARDS ====== */
+    .section-group-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 24px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-group-title:first-child {
+      margin-top: 0;
+    }
+
+    .section-group-title h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .section-group-title span {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .prog-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin-bottom: 0;
+      padding: 20px;
+      transition: border-color 150ms var(--ease-out);
+    }
+
+    .prog-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .prog-card.inactive-card {
+      background: #fcfcfd;
+    }
+
+    .prog-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .status-text {
+      color: var(--green);
+    }
+
+    .status-text.selesai {
+      color: var(--muted);
+    }
+
+    .prog-card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text);
+      text-wrap: balance;
+    }
+
+    .prog-card .desc {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ledger-rows {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-bottom: 12px;
+    }
+
+    .row-num {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13px;
+      padding: 4px 0;
+    }
+
+    .row-num span:first-child {
+      color: var(--muted);
+    }
+
+    .row-num b {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .bar-wrap {
+      background: var(--surface-muted);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+      margin: 6px 0 6px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 4px;
+    }
+
+    .prog-target-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ====== BUTTONS ====== */
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
 
     button.btn {
-      background: var(--primary); color: white; border: none; border-radius: 8px;
-      padding: 9px 14px; font-size: 13px; cursor: pointer; transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: var(--primary);
+      color: #ffffff;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 9px 18px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), opacity 150ms var(--ease-out);
     }
-    button.btn:hover { background: var(--primary-dark); }
-    button.btn.secondary { background: #eef1f6; color: var(--text); }
-    button.btn.secondary:hover { background: #e2e8f0; }
-    button.btn.small { padding: 6px 10px; font-size: 12px; }
-    button.btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    form label { display: block; font-size: 13px; margin: 12px 0 4px; color: var(--text); font-weight: 500; }
-    form input, form select, form textarea {
-      width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+    button.btn:hover {
+      background: var(--primary-dark);
     }
-    form textarea { resize: vertical; min-height: 60px; }
 
-    .table-container { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; min-width: 600px; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 600; background: #f8fafc; }
+    button.btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
 
-    .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 30px 0; }
+    button.btn.secondary {
+      background: var(--card);
+      color: var(--text-secondary);
+      border-color: var(--border);
+    }
+
+    button.btn.secondary:hover {
+      background: var(--surface-muted);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    button.btn.emerald {
+      background: var(--green);
+      color: #ffffff;
+    }
+
+    button.btn.emerald:hover {
+      background: #166534;
+    }
+
+    button.btn.small {
+      padding: 7px 12px;
+      font-size: 12.5px;
+    }
+
+    button.btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* ====== FORMS ====== */
+    form label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin: 14px 0 6px;
+    }
+
+    form label:first-child {
+      margin-top: 0;
+    }
+
+    form input,
+    form select,
+    form textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--card);
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+    }
+
+    form input:focus,
+    form select:focus,
+    form textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+    }
+
+    form textarea {
+      resize: vertical;
+      min-height: 76px;
+    }
+
+    form input[type="file"] {
+      padding: 7px 10px;
+      font-size: 12.5px;
+      background: var(--surface-muted);
+      border-style: dashed;
+      border-color: var(--border-strong);
+      cursor: pointer;
+    }
+
+    .field-hint {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin: 5px 0 0;
+      line-height: 1.4;
+    }
+
+    /* ====== TABLES ====== */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 600px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+      background: var(--surface-muted);
+      white-space: nowrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13.5px;
+      text-align: center;
+      padding: 36px 16px;
+      margin: 0;
+    }
+
+    /* ====== BACK LINK ====== */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      padding: 6px 10px;
+      margin-left: -10px;
+      border-radius: var(--radius-sm);
+      transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+    }
+
+    .back-link:hover {
+      background: var(--surface-muted);
+      color: var(--text);
+    }
+
+    /* ====== TOAST & LOADERS ====== */
     .toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px;
-      opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 9999;
-      max-width: 90%; text-align: center;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 11px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+      opacity: 0;
+      transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+      pointer-events: none;
+      z-index: 9999;
+      max-width: 90%;
+      text-align: center;
     }
-    .toast.show { opacity: 1; }
-    .back-link { color: var(--primary); font-size: 13px; cursor: pointer; margin-bottom: 15px; display: inline-block; font-weight: 500; }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; text-align: center; margin: 14px 0; }
-    .summary-grid div { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
-    .summary-grid div b { display: block; font-size: 16px; color: var(--primary-dark); margin-bottom: 4px; }
 
-    /* ====== TAMBAHAN: MODERN INLINE LOADER ====== */
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     .modern-loader {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 50px 20px; grid-column: 1 / -1; width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 20px;
+      grid-column: 1 / -1;
+      width: 100%;
     }
+
     .modern-spinner {
-      width: 36px; height: 36px; border: 4px solid #e2e8f0;
-      border-top-color: var(--primary); border-radius: 50%;
-      animation: spin 0.8s linear infinite; margin-bottom: 12px;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin-bottom: 12px;
     }
+
     .modern-loader p {
-      color: var(--muted); font-size: 14px; margin: 0; font-weight: 500;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      color: var(--muted);
+      font-size: 13.5px;
+      margin: 0;
+      font-weight: 500;
     }
 
-    /* ====== TAMBAHAN: LOADING OVERLAY ANTI DOUBLE-SUBMIT ====== */
     .loading-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
-      display: none; align-items: center; justify-content: center;
-      flex-direction: column; gap: 14px; z-index: 99999;
-    }
-    .loading-overlay.show { display: flex; }
-    .loading-spinner {
-      width: 42px; height: 42px; border-radius: 50%;
-      border: 4px solid rgba(255,255,255,0.25); border-top-color: #ffffff;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-overlay p {
-      color: white; font-size: 14px; font-weight: 600; margin: 0;
-      text-align: center; padding: 0 20px;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 99999;
     }
 
-    /* ====== TAMBAHAN: TABEL LAPORAN PENERIMA (gaya kotak sesuai sketsa "Handler") ====== */
-    .laporan-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 10px; table-layout: fixed; }
-    .laporan-table th, .laporan-table td { border: 1px solid #333; padding: 6px 8px; vertical-align: top; text-align: left; }
-    .laporan-table th { background: #f1f5f9; font-size: 11px; text-align: center; }
-    .laporan-table th.col-no, .laporan-table td.col-no { text-align: center; width: 18px; padding-left: 2px; padding-right: 2px; }
-    .laporan-table th.col-bukti, .laporan-table td.col-bukti { text-align: center; width: 130px; }
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    .loading-spinner {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #ffffff;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-overlay p {
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 0;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    /* ====== MODAL UNGGAH BUKTI ====== */
+    #modalOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 40;
+    }
+
+    #modalBukti {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 92%;
+      max-width: 480px;
+      max-height: 88vh;
+      overflow-y: auto;
+      z-index: 50;
+      margin: 0;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+    }
+
+    .upload-group-title {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .upload-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    /* ====== TABEL LAPORAN PENERIMA (Handler) ====== */
+    .laporan-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      margin-top: 10px;
+      table-layout: fixed;
+    }
+    .laporan-table th, .laporan-table td {
+      border: 1px solid #333;
+      padding: 6px 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+    .laporan-table th {
+      background: #f1f5f9;
+      font-size: 11px;
+      text-align: center;
+    }
+    .laporan-table th.col-no, .laporan-table td.col-no {
+      text-align: center;
+      width: 18px;
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+    .laporan-table th.col-bukti, .laporan-table td.col-bukti {
+      text-align: center;
+      width: 130px;
+    }
     .laporan-table .field-line { margin: 0 0 3px; line-height: 1.35; }
     .laporan-table .field-line:last-child { margin-bottom: 0; }
     .laporan-table .field-line b { font-weight: 600; }
-    .laporan-table img.bukti-img { width: 115px; height: 115px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px; }
+    .laporan-table img.bukti-img {
+      width: 115px;
+      height: 115px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
     .laporan-table .no-bukti { color: #999; font-size: 10px; font-style: italic; }
 
-    /* ====== TAMBAHAN: PENGATURAN CETAK PDF (FRONTEND) ====== */
+    /* ====== TAMPILAN LPJ ON-SCREEN & CETAK PDF (FRONTEND) ====== */
+    #cetakArea {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .print-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+      margin-bottom: 24px;
+      min-width: 0;
+    }
+    .print-table th, .print-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+    .print-table th {
+      background-color: var(--surface-muted);
+      font-weight: 600;
+      text-align: left;
+      color: var(--text-secondary);
+    }
+
+    .lampiran-block {
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: var(--radius-md);
+      background: #ffffff;
+    }
+
+    .lampiran-images {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .lampiran-images div {
+      text-align: center;
+    }
+    .lampiran-images img {
+      width: 100%;
+      height: 250px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+    }
+
+    .ttd-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 32px;
+      text-align: center;
+      background: var(--surface-hover);
+      padding: 24px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .ttd-box { width: 30%; font-size: 13px; }
+    .ttd-space { height: 70px; }
+    .page-break {
+      margin-top: 36px;
+      border-top: 1px dashed var(--border-strong);
+      padding-top: 28px;
+    }
+
+    .detail-actions-bar {
+      max-width: 920px;
+      margin: 20px auto 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
     @media print {
       @page { size: A4 portrait; margin: 15mm; }
-      body { background: white !important; color: black !important; }
-      header, nav, .back-link, .actions, .toast, .loading-overlay { display: none !important; }
+      body { background: white !important; color: black !important; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+      .topbar-shell, header, nav, .back-link, .actions, .detail-actions-bar, .toast, .loading-overlay { display: none !important; }
       main { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
-      .card { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important;}
-      
-      /* Pemisah Halaman */
-      .page-break { page-break-before: always; padding-top: 10px; }
+      .card, #cetakArea { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+
+      .page-break { page-break-before: always; padding-top: 10px; border-top: none !important; margin-top: 0 !important; }
       .no-print { display: none !important; }
-      
-      /* Style khusus tabel print */
+
       .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
-      .print-table th, .print-table td { border: 1px solid #000; padding: 6px; vertical-align: top;}
-      .print-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: center; font-weight: bold;}
-      
-      /* Grid Lampiran Cross-Ref (4 Foto per Kertas) */
+      .print-table th, .print-table td { border: 1px solid #000; padding: 6px; vertical-align: top; }
+      .print-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: center; font-weight: bold; }
+
       .lampiran-block { page-break-inside: avoid; page-break-after: always; border: 2px solid #333; padding: 15px; margin-top: 20px; border-radius: 8px; }
-      .lampiran-block:last-child { page-break-after: auto; } /* Mencegah halaman kosong di akhir PDF */
+      .lampiran-block:last-child { page-break-after: auto; }
       .lampiran-images { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
       .lampiran-images div { text-align: center; }
-      .lampiran-images img { width: 100%; height: 900px; object-fit: contain; border: 1px solid #ddd; padding: 4px; display: block; margin: 0 auto; }
-      
-      /* Lembar Pengesahan Tanda Tangan */
-      .ttd-container { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; page-break-inside: avoid; }
+      .lampiran-images img { width: 100%; height: 900px; object-fit: contain; border: 1px solid #ddd; padding: 4px; display: block; margin: 0 auto; background: white; }
+
+      .ttd-container { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; page-break-inside: avoid; border: none !important; background: transparent !important; padding: 0 !important; }
       .ttd-box { width: 30%; font-size: 11px; }
       .ttd-space { height: 70px; }
     }
-    
-    /* Tampilan Normal (Layar) untuk elemen cetak agar tetap rapi saat dilihat sebelum diprint */
-    .print-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; margin-bottom: 25px; }
-    .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 10px; }
-    .print-table th { background-color: #f8fafc; font-weight: 600; text-align: left; }
-    .lampiran-block { border: 1px solid var(--border); padding: 18px; margin-bottom: 20px; border-radius: 8px; background: #fff; }
-    .lampiran-images { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-    .lampiran-images div { text-align: center; }
-    .lampiran-images img { width: 100%; height: 250px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; }
-    .ttd-container { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; background: #fff; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
-    .ttd-box { width: 30%; font-size: 13px; }
-    .ttd-space { height: 70px; }
-    .page-break { margin-top: 40px; border-top: 3px dashed var(--border); padding-top: 20px; }
+
+    /* ====== RESPONSIVE BREAKPOINTS ====== */
+    @media (max-width: 960px) {
+      header#appHeader {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 12px 16px 0;
+        gap: 10px;
+      }
+      .brand-zone {
+        order: 1;
+      }
+      #userBadge {
+        order: 2;
+        margin-left: auto;
+      }
+      nav#nav {
+        order: 3;
+        width: 100%;
+        height: 44px;
+        border-top: 1px solid var(--border);
+        margin-top: 4px;
+      }
+      .kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kpi-cell:nth-child(2) {
+        border-right: none;
+      }
+      .kpi-cell:nth-child(1),
+      .kpi-cell:nth-child(2) {
+        border-bottom: 1px solid var(--border);
+      }
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 18px 16px 48px;
+      }
+      .card, #cetakArea {
+        padding: 18px 16px;
+      }
+      .kpi-strip {
+        grid-template-columns: 1fr;
+      }
+      .kpi-cell {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .kpi-cell:last-child {
+        border-bottom: none;
+      }
+      .detail-actions-bar {
+        grid-template-columns: 1fr;
+      }
+      .lampiran-images {
+        grid-template-columns: 1fr;
+      }
+      .ttd-container {
+        flex-direction: column;
+        gap: 24px;
+      }
+      .ttd-box {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <header id="appHeader" style="display:flex; align-items:center; gap:12px;">
-    <button onclick="history.back()" style="background:rgba(255,255,255,0.15); border:none; color:white; width:34px; height:34px; border-radius:8px; font-size:16px; cursor:pointer; flex-shrink:0;" title="Kembali ke Portal">←</button>
-    <div>
-      <h1>📋 Aplikasi Donasi & Program Bantuan</h1>
-      <p>Yayasan Salam Satu Aspal (YASSA)</p>
-    </div>
-  </header>
+  <div class="topbar-shell" id="topbarShell">
+    <header id="appHeader">
+      <!-- Zone 1: Brand / Portal Back -->
+      <div class="brand-zone">
+        <button class="back-portal-btn" onclick="history.back()" title="Kembali ke Portal" aria-label="Kembali ke Portal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <h1 class="brand-wordmark">YASSA Bantuan</h1>
+      </div>
 
-  <nav id="nav">
-    <button data-view="dashboard" class="active">📊 Dashboard & Laporan</button>
-    <button data-view="programDonasi">💰 Program & Donasi</button>
-    <button data-view="penerima">👥 Data Penerima</button>
-    <button data-view="distribusi">🎁 Distribusi Bantuan</button>
-  </nav>
+      <!-- Zone 2: Navigation Links -->
+      <nav id="nav" aria-label="Navigasi Utama">
+        <button data-view="dashboard" class="active">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button data-view="programDonasi">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+          Program &amp; Donasi
+        </button>
+        <button data-view="penerima">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Data Penerima
+        </button>
+        <button data-view="distribusi">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          Distribusi
+        </button>
+      </nav>
+      <!-- Zone 3: #userBadge appended by initLoginSystem() -->
+    </header>
+  </div>
 
   <main>
 
     <!-- 1. DASHBOARD & LAPORAN -->
     <div class="view active" id="view-dashboard">
-      <div id="dashboardList" class="grid">
+      <div class="page-intro">
+        <div>
+          <h2>Dashboard Program &amp; Laporan</h2>
+          <p>Ringkasan realisasi dana masuk, penyaluran bantuan, dan sisa saldo program Yayasan Salam Satu Aspal.</p>
+        </div>
+        <button type="button" class="btn secondary small" onclick="loadDashboard()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Muat Ulang
+        </button>
+      </div>
+
+      <div id="dashboardList">
         <div class="modern-loader">
           <div class="modern-spinner"></div>
           <p>Menyiapkan dashboard YASSA...</p>
@@ -241,28 +1268,50 @@
 
     <!-- DETAIL PROGRAM (Sub-view dari Dashboard) -->
     <div class="view" id="view-detail">
-      <span class="back-link" onclick="showView('dashboard')">&larr; Kembali ke Dashboard</span>
+      <span class="back-link" onclick="showView('dashboard')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Kembali ke Dashboard
+      </span>
       <div id="detailContent"></div>
     </div>
 
     <!-- 2. PROGRAM & DONASI (Digabung) -->
     <div class="view" id="view-programDonasi">
+      <div class="page-intro">
+        <div>
+          <h2>Program &amp; Donasi Masuk</h2>
+          <p>Buat wadah program bantuan baru dan catat pemasukan dana dari donatur ke kas program.</p>
+        </div>
+      </div>
+
       <div class="grid-2">
         <!-- Kolom Kiri: Buat Program -->
         <div class="card">
-          <h3>1. Buat Program Bantuan Baru</h3>
-          <p style="color:var(--muted); font-size:13px; margin-top:-4px;">Buat wadah kegiatan sebelum mencatat uang masuk.</p>
+          <div class="card-header">
+            <h3>1. Buat Program Bantuan Baru</h3>
+            <p>Buat wadah kegiatan sebelum mencatat uang masuk.</p>
+          </div>
           <form id="formProgram">
-            <label>Nama Program</label>
+            <label for="p_nama">Nama Program</label>
             <input type="text" id="p_nama" placeholder="Contoh: Bantuan Seragam Ibu Syarifah" required>
-            <label>Deskripsi (Opsional)</label>
+
+            <label for="p_deskripsi">Deskripsi (Opsional)</label>
             <textarea id="p_deskripsi" placeholder="Deskripsi singkat kegiatan"></textarea>
-            <label>Target Dana (Rp) - Opsional</label>
-            <input type="number" id="p_target" placeholder="0">
-            <label>Tanggal Mulai</label>
-            <input type="date" id="p_mulai">
-            <label>Tanggal Selesai</label>
-            <input type="date" id="p_selesai">
+
+            <label for="p_target">Target Dana (Rp) - Opsional</label>
+            <input type="number" id="p_target" placeholder="0" class="mono">
+
+            <div class="grid-2" style="gap:12px;">
+              <div>
+                <label for="p_mulai">Tanggal Mulai</label>
+                <input type="date" id="p_mulai">
+              </div>
+              <div>
+                <label for="p_selesai">Tanggal Selesai</label>
+                <input type="date" id="p_selesai">
+              </div>
+            </div>
+
             <div class="actions">
               <button type="submit" class="btn">Simpan Program</button>
             </div>
@@ -271,24 +1320,36 @@
 
         <!-- Kolom Kanan: Input Donasi -->
         <div class="card">
-          <h3>2. Catat Dana Masuk (Donasi)</h3>
-          <p style="color:var(--muted); font-size:13px; margin-top:-4px;">Catat uang dari donatur agar kas program bertambah.</p>
+          <div class="card-header">
+            <h3>2. Catat Dana Masuk (Donasi)</h3>
+            <p>Catat uang dari donatur agar kas program bertambah.</p>
+          </div>
           <form id="formDonasi">
-            <label>Pilih Program</label>
+            <label for="d_program">Pilih Program</label>
             <select id="d_program" required></select>
-            <label>Nama Donatur</label>
-            <input type="text" id="d_nama" required>
-            <label>Jumlah Donasi (Rp)</label>
-            <input type="number" id="d_jumlah" required>
-            <label>Tanggal Masuk</label>
-            <input type="date" id="d_tanggal" required>
-            <label>Metode Penyerahan</label>
-            <select id="d_metode">
-              <option>Tunai</option>
-              <option>Transfer Bank</option>
-              <option>QRIS</option>
-              <option>Lainnya</option>
-            </select>
+
+            <label for="d_nama">Nama Donatur</label>
+            <input type="text" id="d_nama" placeholder="Nama lengkap donatur atau Hamba Allah" required>
+
+            <label for="d_jumlah">Jumlah Donasi (Rp)</label>
+            <input type="number" id="d_jumlah" placeholder="0" required class="mono">
+
+            <div class="grid-2" style="gap:12px;">
+              <div>
+                <label for="d_tanggal">Tanggal Masuk</label>
+                <input type="date" id="d_tanggal" required>
+              </div>
+              <div>
+                <label for="d_metode">Metode Penyerahan</label>
+                <select id="d_metode">
+                  <option>Tunai</option>
+                  <option>Transfer Bank</option>
+                  <option>QRIS</option>
+                  <option>Lainnya</option>
+                </select>
+              </div>
+            </div>
+
             <div class="actions">
               <button type="submit" class="btn">Simpan Donasi</button>
             </div>
@@ -299,25 +1360,39 @@
 
     <!-- 3. DATA PENERIMA MANFAAT -->
     <div class="view" id="view-penerima">
+      <div class="page-intro">
+        <div>
+          <h2>Database Penerima Manfaat</h2>
+          <p>Pendaftaran dan direktori anak yatim penerima bantuan lintas wilayah.</p>
+        </div>
+      </div>
+
       <div class="card">
-        <h3>Pendaftaran Anak Yatim / Penerima</h3>
+        <div class="card-header">
+          <h3>Pendaftaran Anak Yatim / Penerima</h3>
+          <p>Lengkapi profil anak penerima manfaat sebelum dijadwalkan pada modul distribusi.</p>
+        </div>
         <form id="formPenerima">
           <div class="grid-2">
             <div>
-              <label>Nama Anak Yatim</label>
+              <label for="pm_nama">Nama Anak Yatim</label>
               <input type="text" id="pm_nama" required>
-              <label>Wilayah</label>
+
+              <label for="pm_wilayah">Wilayah</label>
               <input type="text" id="pm_wilayah" placeholder="Contoh: Kota Bekasi / Kab. Bekasi">
-              <label>Sekolah & Kelas</label>
+
+              <label for="pm_sekolah">Sekolah &amp; Kelas</label>
               <input type="text" id="pm_sekolah" placeholder="Contoh: SDN 01 (Kelas 5)">
             </div>
             <div>
-              <label>Nama Orang Tua (Almarhum/Alm.)</label>
+              <label for="pm_ortu">Nama Orang Tua (Almarhum/Alm.)</label>
               <input type="text" id="pm_ortu" placeholder="Contoh: Bp. Fulan">
-              <label>Umur (Tahun)</label>
-              <input type="number" id="pm_umur">
-              <label>Kontak Wali (Opsional)</label>
-              <input type="text" id="pm_kontak">
+
+              <label for="pm_umur">Umur (Tahun)</label>
+              <input type="number" id="pm_umur" class="mono">
+
+              <label for="pm_kontak">Kontak Wali / Korwil (Opsional)</label>
+              <input type="text" id="pm_kontak" placeholder="Nama Korwil atau nomor wali">
             </div>
           </div>
           <div class="actions">
@@ -325,11 +1400,28 @@
           </div>
         </form>
       </div>
+
       <div class="card">
-        <h3>Database Penerima Manfaat</h3>
+        <div class="card-header" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+          <div>
+            <h3>Direktori Penerima Manfaat</h3>
+            <p>Daftar seluruh penerima yang telah terdaftar di sistem.</p>
+          </div>
+          <div class="search-box" style="max-width:280px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="searchPenerima" placeholder="Cari nama, wilayah, sekolah...">
+          </div>
+        </div>
         <div class="table-container">
           <table id="tabelPenerima">
-            <thead><tr><th>Nama</th><th>Wilayah</th><th>Sekolah</th><th>Nama Alm/Ortu</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Wilayah</th>
+                <th>Sekolah &amp; Kelas</th>
+                <th>Nama Alm/Ortu</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
@@ -338,26 +1430,41 @@
 
     <!-- 4. DISTRIBUSI BANTUAN (Jadwal & Upload Digabung) -->
     <div class="view" id="view-distribusi">
+      <div class="page-intro">
+        <div>
+          <h2>Distribusi &amp; Realisasi Bantuan</h2>
+          <p>Jadwalkan penyaluran oleh Korwil dan unggah dokumentasi foto serta kwitansi belanja pada hari-H.</p>
+        </div>
+      </div>
+
       <div class="card">
-        <h3>Jadwalkan Distribusi (Oleh Korwil)</h3>
+        <div class="card-header">
+          <h3>Jadwalkan Distribusi (Oleh Korwil)</h3>
+          <p>Tentukan program, anak penerima, bentuk bantuan, serta jadwal rencana penyerahan.</p>
+        </div>
         <form id="formPenyaluran">
           <div class="grid-2">
             <div>
-              <label>Pilih Program</label>
+              <label for="py_program">Pilih Program</label>
               <select id="py_program" required></select>
-              <label>Pilih Anak Penerima</label>
+
+              <label for="py_penerima">Pilih Anak Penerima</label>
               <select id="py_penerima" required></select>
-              <label>Nama Korwil / PIC</label>
+
+              <label for="py_pic">Nama Korwil / PIC</label>
               <input type="text" id="py_pic" placeholder="Nama Korwil yang bertugas" required>
-              <label>Wilayah Distribusi</label>
+
+              <label for="py_wilayah">Wilayah Distribusi</label>
               <input type="text" id="py_wilayah" placeholder="Contoh: Bekasi Kota" required>
             </div>
             <div>
-              <label>Bentuk Bantuan</label>
+              <label for="py_item">Bentuk Bantuan</label>
               <input type="text" id="py_item" placeholder="Contoh: Seragam Sekolah / Uang Tunai" required>
-              <label>Nilai Bantuan (Rp)</label>
-              <input type="number" id="py_nilai" required>
-              <label>Tanggal Rencana Diberikan</label>
+
+              <label for="py_nilai">Nilai Bantuan (Rp)</label>
+              <input type="number" id="py_nilai" required class="mono">
+
+              <label for="py_tanggal">Tanggal Rencana Diberikan</label>
               <input type="date" id="py_tanggal" required>
             </div>
           </div>
@@ -368,8 +1475,10 @@
       </div>
 
       <div class="card">
-        <h3>Daftar Bantuan Menunggu Bukti (Hari-H)</h3>
-        <p style="color:var(--muted); font-size:13px; margin-top:-6px;">Klik tombol "Unggah Bukti" pada hari-H pembagian kepada anak. Yang sudah selesai tetap tampil di bawah sebagai catatan.</p>
+        <div class="card-header">
+          <h3>Daftar Bantuan Menunggu Bukti (Hari-H)</h3>
+          <p>Klik tombol Unggah Bukti pada hari-H pembagian kepada anak. Data yang selesai otomatis masuk ke LPJ program.</p>
+        </div>
         <div class="table-container" id="listTerjadwal">
           <p class="empty">Memuat data...</p>
         </div>
@@ -377,81 +1486,81 @@
     </div>
 
     <!-- MODAL UNGGAH BUKTI -->
-    <div class="card" id="modalBukti" style="display:none; position:fixed; top:5%; left:50%; transform:translateX(-50%); width:90%; max-width:420px; max-height:90vh; overflow-y:auto; z-index:50; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
-      <h3>Unggah Bukti Pembagian</h3>
+    <div id="modalOverlay" onclick="closeModal()"></div>
+    <div class="card" id="modalBukti">
+      <div class="card-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+        <div>
+          <h3>Unggah Bukti Pembagian</h3>
+          <p>Lengkapi realisasi nominal, foto kegiatan, dan nota kwitansi.</p>
+        </div>
+        <button type="button" class="back-portal-btn" onclick="closeModal()" aria-label="Tutup modal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
       <form id="formBukti">
         <input type="hidden" id="bk_id">
-        <label>Tanggal Realisasi (Hari ini)</label>
+
+        <label for="bk_tanggal">Tanggal Realisasi (Hari ini)</label>
         <input type="date" id="bk_tanggal" required>
-        
-        <label>Total Realisasi Belanja/Bantuan (Rp)</label>
-        <input type="number" id="bk_nilai" required placeholder="Contoh: 1550000">
-        <p style="font-size:11px; color:var(--muted); margin:-6px 0 10px;">Boleh diubah dari target awal, sesuaikan dengan nominal belanja yang sebenarnya (bisa lebih kecil atau lebih besar).</p>
 
-        <label>Uang Transport / Operasional (Rp)</label>
-        <input type="number" id="bk_transport" placeholder="Contoh: 50000" value="0">
+        <label for="bk_nilai">Total Realisasi Belanja/Bantuan (Rp)</label>
+        <input type="number" id="bk_nilai" required placeholder="Contoh: 1550000" class="mono">
+        <p class="field-hint">Boleh diubah dari target awal, sesuaikan dengan nominal belanja yang sebenarnya (bisa lebih kecil atau lebih besar).</p>
 
-        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">1. Bukti Foto Kegiatan</label>
-        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
+        <label for="bk_transport">Uang Transport / Operasional (Rp)</label>
+        <input type="number" id="bk_transport" placeholder="Contoh: 50000" value="0" class="mono">
+
+        <div class="upload-group-title">1. Bukti Foto Kegiatan</div>
+        <div class="upload-stack">
           <input type="file" id="bk_foto" accept="image/*" title="Foto Utama">
           <input type="file" id="bk_foto2" accept="image/*" title="Foto 2 (Opsional)">
           <input type="file" id="bk_foto3" accept="image/*" title="Foto 3 (Opsional)">
           <input type="file" id="bk_foto4" accept="image/*" title="Foto 4 (Opsional)">
           <input type="file" id="bk_foto5" accept="image/*" title="Foto 5 (Opsional)">
         </div>
-        
-        <label style="border-top:1px solid #eee; padding-top:10px; color:var(--primary-dark)">2. Bukti Kwitansi Belanja</label>
-        <div style="display:flex; flex-direction:column; gap:6px;">
+
+        <div class="upload-group-title">2. Bukti Kwitansi Belanja</div>
+        <div class="upload-stack">
           <input type="file" id="bk_kwitansi" accept="image/*" title="Kwitansi Utama">
           <input type="file" id="bk_kwitansi2" accept="image/*" title="Kwitansi 2 (Opsional)">
           <input type="file" id="bk_kwitansi3" accept="image/*" title="Kwitansi 3 (Opsional)">
           <input type="file" id="bk_kwitansi4" accept="image/*" title="Kwitansi 4 (Opsional)">
           <input type="file" id="bk_kwitansi5" accept="image/*" title="Kwitansi 5 (Opsional)">
         </div>
-        
+
         <div class="actions" style="margin-top: 20px;">
-          <button type="submit" id="btnSubmitBukti" class="btn">Unggah & Selesaikan</button>
+          <button type="submit" id="btnSubmitBukti" class="btn" style="flex:1;">Unggah &amp; Selesaikan</button>
           <button type="button" class="btn secondary" onclick="closeModal()">Batal</button>
         </div>
       </form>
     </div>
-    <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); z-index:40;" onclick="closeModal()"></div>
 
   </main>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- TAMBAHAN: overlay loading global -->
+  <!-- Overlay loading global -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
     <p id="loadingText">Menyimpan data, mohon tunggu...</p>
   </div>
 
   <script>
+    // ---------- KONFIGURASI APLIKASI ----------
+    var APP_CONFIG = {
+      namaAplikasi: 'Aplikasi Donasi & Program Bantuan — YASSA'
+    };
+
     // ---------- MODE EMBED (dibuka lewat iframe YASSA Hub) ----------
-    // Sebelumnya app ini SAMA SEKALI GAK BACA ?embed=1&tab=... dari Hub,
-    // jadi menu apapun yang diklik dari Hub selalu balik nampilin Dashboard
-    // (tab-nya kepilih tapi isinya gak ikut pindah). Sekarang dibaca di
-    // awal biar app ini kebuka langsung di tab yang diminta Hub.
     var VALID_TABS = ['dashboard', 'programDonasi', 'penerima', 'distribusi'];
     var EMBED_PARAMS = new URLSearchParams(window.location.search);
     var IS_EMBEDDED = EMBED_PARAMS.get('embed') === '1';
     var INITIAL_TAB = VALID_TABS.indexOf(EMBED_PARAMS.get('tab')) !== -1 ? EMBED_PARAMS.get('tab') : 'dashboard';
-    // Origin YASSA Hub yang boleh ngirim perintah pindah-tab lewat
-    // postMessage (biar ganti tab gak perlu reload halaman -- lihat
-    // listener 'message' di bagian INIT paling bawah).
     var ALLOWED_HUB_ORIGINS = ['https://yayasansalamsatuaspaldc-eng.github.io'];
 
     // ---------- KONFIGURASI BACKEND (Apps Script) ----------
-    // PENTING: Ganti dengan URL hasil "New deployment" terbaru dari Apps Script.
     var EXEC_URL = 'https://script.google.com/macros/s/AKfycbwwGzONxFV1YzwNCCEfsefBH54y1_WHzyEuS6deOvErxMNw4H95gpQRa5kpGih_jgdg/exec';
 
-    // Helper pemanggil backend dengan fetch (Bypass CORS)
-    // TAMBAHAN: retry otomatis. Di PWA/WebView (Add to Home Screen), sesekali
-    // Google mengembalikan halaman HTML (bukan JSON) karena gangguan sesaat
-    // pada koneksi/sesi WebView -- padahal proses di server (Apps Script)
-    // biasanya tetap berhasil. Jadi sebelum benar-benar dianggap gagal,
-    // kita coba ulang beberapa kali dulu secara diam-diam.
     function callBackendOnce(action, payload) {
       return fetch(EXEC_URL, {
         method: 'POST',
@@ -496,21 +1605,27 @@
 
     // ---------- NAVIGATION LOGIC (4 Menu Utama) ----------
     document.getElementById('nav').addEventListener('click', function (e) {
-      if (e.target.tagName === 'BUTTON') {
-        showView(e.target.dataset.view);
+      var btn = e.target.closest('button[data-view]');
+      if (btn) {
+        showView(btn.dataset.view);
       }
     });
 
     function showView(name) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById('view-' + name).classList.add('active');
+      document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+      var targetView = document.getElementById('view-' + name);
+      if (targetView) targetView.classList.add('active');
 
-      document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#nav button').forEach(function (b) { b.classList.remove('active'); });
       var navBtn = document.querySelector('#nav button[data-view="' + name + '"]');
       if (navBtn) navBtn.classList.add('active');
 
       if (name === 'dashboard') loadDashboard();
-      if (name === 'programDonasi') loadProgramOptions();
+      if (name === 'programDonasi') {
+        loadProgramOptions();
+        var dTgl = document.getElementById('d_tanggal');
+        if (dTgl && !dTgl.value) dTgl.value = new Date().toISOString().split('T')[0];
+      }
       if (name === 'penerima') loadPenerimaTable();
       if (name === 'distribusi') {
         loadProgramOptions();
@@ -523,20 +1638,28 @@
       var t = document.getElementById('toast');
       t.textContent = msg;
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3000);
+      setTimeout(function () { t.classList.remove('show'); }, 3200);
     }
 
     function formatRp(n) {
       return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
     }
 
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function showError(err) {
       console.error(err);
       var msg = (err && err.message) ? err.message : (typeof err === 'string' ? err : 'Terjadi kesalahan');
-      toast('❌ Error: ' + msg);
+      toast('Error: ' + msg);
     }
 
-    // Ubah link "view" Google Drive jadi link gambar langsung supaya bisa tampil di <img>
     function driveDirectUrl_(url) {
       if (!url) return null;
       var match = url.match(/[-\w]{25,}/);
@@ -557,32 +1680,26 @@
       return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
-    // ====== TAMBAHAN: LOADING OVERLAY + PENGUNCI ANTI DOUBLE-SUBMIT ======
-    // isSubmitting mengunci SEMUA form sekaligus. Jadi walaupun tombol
-    // sempat ke-klik dua kali dengan sangat cepat (atau di HP kadang event
-    // "tap" bisa terdaftar 2x), permintaan kedua akan otomatis diabaikan.
+    // ====== LOADING OVERLAY + PENGUNCI ANTI DOUBLE-SUBMIT ======
     var isSubmitting = false;
 
     function showLoading(msg) {
       document.getElementById('loadingText').textContent = msg || 'Menyimpan data, mohon tunggu...';
       document.getElementById('loadingOverlay').classList.add('show');
     }
+
     function hideLoading() {
       document.getElementById('loadingOverlay').classList.remove('show');
     }
 
-    // Bungkus proses submit form supaya konsisten: kunci saat mulai,
-    // lepas kunci + sembunyikan overlay + kembalikan tombol APAPUN hasilnya
-    // (sukses, gagal, atau error jaringan) menggunakan finally().
     function handleFormSubmit(opts) {
-      // opts: { form, loadingMsg, buildData, action, successMsg, onSuccess }
       if (!isEditor()) {
-        toast('🔒 Hanya Superadmin/Admin yang bisa menyimpan data. Silakan login.');
+        toast('Hanya Superadmin/Admin yang bisa menyimpan data. Silakan login.');
         promptLogin();
         return;
       }
       if (isSubmitting) {
-        toast('⏳ Mohon tunggu, permintaan sebelumnya sedang diproses...');
+        toast('Mohon tunggu, permintaan sebelumnya sedang diproses...');
         return;
       }
       isSubmitting = true;
@@ -611,84 +1728,486 @@
       });
     }
 
-    // ---------- DASHBOARD & LAPORAN ----------
+    // ---------- DASHBOARD & LAPORAN (State + Client-side Filter + D3 Trend Chart) ----------
+    var cachedDashboardPrograms = [];
+    var dashboardFilterStatus = 'all'; // 'all' | 'aktif' | 'selesai'
+    var dashboardSearchQuery = '';
+    var monthlyTrendData = [];
+    var monthlyTrendState = 'idle'; // 'idle' | 'loading' | 'ready' | 'error'
+    var monthlyTrendReqId = 0;
+
+    function parseDonationDate(raw) {
+      if (!raw) return null;
+      if (raw instanceof Date) return isNaN(raw.getTime()) ? null : raw;
+      var s = String(raw).trim();
+      if (!s) return null;
+      // Tangani format DD/MM/YYYY atau DD-MM-YYYY
+      var dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) {
+        var dtDmy = new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]));
+        return isNaN(dtDmy.getTime()) ? null : dtDmy;
+      }
+      var dt = new Date(s);
+      return isNaN(dt.getTime()) ? null : dt;
+    }
+
+    function formatCompactRp(val) {
+      var n = Number(val || 0);
+      if (n === 0) return 'Rp 0';
+      if (n >= 1000000000) return 'Rp ' + (n / 1000000000).toFixed(1).replace(/\.0$/, '').replace('.', ',') + 'M';
+      if (n >= 1000000) return 'Rp ' + (n / 1000000).toFixed(1).replace(/\.0$/, '').replace('.', ',') + 'jt';
+      if (n >= 1000) return 'Rp ' + Math.round(n / 1000) + 'rb';
+      return 'Rp ' + n.toLocaleString('id-ID');
+    }
+
+    function aggregateMonthlyDonations(detailResults) {
+      var buckets = {};
+      (detailResults || []).forEach(function (res) {
+        if (!res || !res.success || !res.data || !Array.isArray(res.data.donasi)) return;
+        res.data.donasi.forEach(function (d) {
+          var dt = parseDonationDate(d.Tanggal);
+          if (!dt) return;
+          var yr = dt.getFullYear();
+          var mo = dt.getMonth(); // 0..11
+          var key = yr + '-' + (mo + 1 < 10 ? '0' + (mo + 1) : (mo + 1));
+          if (!buckets[key]) {
+            buckets[key] = {
+              key: key,
+              year: yr,
+              month: mo,
+              dateObj: new Date(yr, mo, 1),
+              total: 0,
+              count: 0
+            };
+          }
+          buckets[key].total += Number(d.Jumlah || 0);
+          buckets[key].count += 1;
+        });
+      });
+
+      var monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      var monthLong = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+      var sorted = Object.keys(buckets).sort().map(function (k) {
+        var b = buckets[k];
+        var yrShort = String(b.year).slice(-2);
+        b.labelShort = monthShort[b.month] + ' ' + yrShort;
+        b.labelFull = monthLong[b.month] + ' ' + b.year;
+        return b;
+      });
+
+      // Tampilkan hingga 12 bulan terakhir agar grafik tetap proporsional dan mudah dibaca
+      if (sorted.length > 12) {
+        sorted = sorted.slice(sorted.length - 12);
+      }
+      return sorted;
+    }
+
+    function loadMonthlyDonationTrend(programs) {
+      monthlyTrendReqId += 1;
+      var currentReqId = monthlyTrendReqId;
+
+      if (!programs || !programs.length) {
+        monthlyTrendData = [];
+        monthlyTrendState = 'ready';
+        renderMonthlyTrendChart();
+        return;
+      }
+
+      monthlyTrendState = 'loading';
+      renderMonthlyTrendChart();
+
+      Promise.all(programs.map(function (p) {
+        return callBackend('getProgramDetail', { programId: p.id });
+      })).then(function (results) {
+        if (currentReqId !== monthlyTrendReqId) return;
+        monthlyTrendData = aggregateMonthlyDonations(results);
+        monthlyTrendState = 'ready';
+        renderMonthlyTrendChart();
+      }).catch(function () {
+        if (currentReqId !== monthlyTrendReqId) return;
+        monthlyTrendData = [];
+        monthlyTrendState = 'error';
+        renderMonthlyTrendChart();
+      });
+    }
+
+    function renderMonthlyTrendChart() {
+      var container = document.getElementById('monthlyDonationChart');
+      var metaEl = document.getElementById('monthlyChartMeta');
+      if (!container) return;
+
+      if (monthlyTrendState === 'loading' || monthlyTrendState === 'idle') {
+        if (metaEl) metaEl.innerHTML = '<span>Memuat rincian bulanan...</span>';
+        container.innerHTML = '<div class="chart-empty"><div class="modern-spinner" style="margin-bottom:4px;"></div><span>Mengagregasi tren donasi bulanan...</span></div>';
+        return;
+      }
+
+      if (monthlyTrendState === 'error') {
+        if (metaEl) metaEl.innerHTML = '';
+        container.innerHTML = '<div class="chart-empty">Gagal memuat data tren donasi bulanan.</div>';
+        return;
+      }
+
+      if (!monthlyTrendData || !monthlyTrendData.length) {
+        if (metaEl) metaEl.innerHTML = '<span>0 bulan tercatat</span>';
+        container.innerHTML = '<div class="chart-empty">Belum ada transaksi donasi bertanggal yang dapat ditampilkan pada grafik.</div>';
+        return;
+      }
+
+      if (typeof window.d3 === 'undefined') {
+        if (metaEl) metaEl.innerHTML = '';
+        container.innerHTML = '<div class="chart-empty">Library grafik D3 belum termuat. Periksa koneksi internet Anda.</div>';
+        return;
+      }
+
+      var totalPeriod = monthlyTrendData.reduce(function (acc, d) { return acc + d.total; }, 0);
+      var avgMonthly = Math.round(totalPeriod / monthlyTrendData.length);
+      if (metaEl) {
+        metaEl.innerHTML =
+          '<span>Periode: <b>' + monthlyTrendData.length + ' bln</b></span>' +
+          '<span>Rata-rata/bln: <b>' + formatCompactRp(avgMonthly) + '</b></span>';
+      }
+
+      container.innerHTML = '';
+      var width = container.clientWidth || 720;
+      var height = container.clientHeight || 240;
+      var margin = { top: 14, right: 16, bottom: 32, left: 62 };
+      var innerWidth = Math.max(200, width - margin.left - margin.right);
+      var innerHeight = Math.max(120, height - margin.top - margin.bottom);
+
+      var d3 = window.d3;
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('viewBox', '0 0 ' + width + ' ' + height)
+        .attr('role', 'img')
+        .attr('aria-label', 'Grafik batang tren donasi bulanan');
+
+      var g = svg.append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      var x = d3.scaleBand()
+        .domain(monthlyTrendData.map(function (d) { return d.labelShort; }))
+        .range([0, innerWidth])
+        .padding(monthlyTrendData.length <= 4 ? 0.55 : 0.34);
+
+      var maxVal = d3.max(monthlyTrendData, function (d) { return d.total; }) || 0;
+      var yMax = maxVal > 0 ? maxVal * 1.15 : 100000;
+
+      var y = d3.scaleLinear()
+        .domain([0, yMax])
+        .nice(4)
+        .range([innerHeight, 0]);
+
+      // Horizontal gridlines
+      g.append('g')
+        .attr('class', 'grid-lines')
+        .call(
+          d3.axisLeft(y)
+            .ticks(4)
+            .tickSize(-innerWidth)
+            .tickFormat('')
+        )
+        .call(function (axis) {
+          axis.select('.domain').remove();
+          axis.selectAll('.tick line')
+            .attr('stroke', '#e2e8f0')
+            .attr('stroke-dasharray', '3,3');
+        });
+
+      // Y Axis
+      g.append('g')
+        .call(
+          d3.axisLeft(y)
+            .ticks(4)
+            .tickFormat(function (v) { return formatCompactRp(v); })
+        )
+        .call(function (axis) {
+          axis.select('.domain').remove();
+          axis.selectAll('.tick line').remove();
+          axis.selectAll('.tick text')
+            .attr('fill', '#64748b')
+            .attr('font-family', 'JetBrains Mono, monospace')
+            .attr('font-size', '11px');
+        });
+
+      // X Axis (skip alternating labels on very narrow screens if > 6 bars)
+      var step = (innerWidth < 460 && monthlyTrendData.length > 6) ? 2 : 1;
+      g.append('g')
+        .attr('transform', 'translate(0,' + innerHeight + ')')
+        .call(
+          d3.axisBottom(x)
+            .tickValues(
+              monthlyTrendData
+                .filter(function (_, idx) { return idx % step === 0; })
+                .map(function (d) { return d.labelShort; })
+            )
+        )
+        .call(function (axis) {
+          axis.select('.domain').attr('stroke', '#cbd5e1');
+          axis.selectAll('.tick line').remove();
+          axis.selectAll('.tick text')
+            .attr('fill', '#64748b')
+            .attr('font-family', 'Plus Jakarta Sans, sans-serif')
+            .attr('font-size', '11.5px')
+            .attr('dy', '0.9em');
+        });
+
+      // Tooltip element
+      var tooltip = d3.select(container)
+        .append('div')
+        .attr('class', 'd3-tooltip');
+
+      // Rounded-top bar path helper
+      function topRoundedRect(bx, by, bw, bh, r) {
+        if (bh <= 0) return 'M' + bx + ',' + (by + bh) + 'h' + bw + 'z';
+        var rad = Math.min(r, bw / 2, bh);
+        return [
+          'M' + bx + ',' + (by + bh),
+          'V' + (by + rad),
+          'Q' + bx + ',' + by + ' ' + (bx + rad) + ',' + by,
+          'H' + (bx + bw - rad),
+          'Q' + (bx + bw) + ',' + by + ' ' + (bx + bw) + ',' + (by + rad),
+          'V' + (by + bh),
+          'Z'
+        ].join(' ');
+      }
+
+      var maxBarWidth = Math.min(x.bandwidth(), 54);
+      var barOffset = (x.bandwidth() - maxBarWidth) / 2;
+
+      g.selectAll('.bar-item')
+        .data(monthlyTrendData)
+        .enter()
+        .append('path')
+        .attr('class', 'bar-item')
+        .attr('d', function (d) {
+          var bx = x(d.labelShort) + barOffset;
+          var by = y(d.total);
+          var bh = Math.max(0, innerHeight - by);
+          return topRoundedRect(bx, by, maxBarWidth, bh, 5);
+        })
+        .attr('fill', '#1d4ed8')
+        .style('cursor', 'pointer')
+        .style('transition', 'fill 140ms ease')
+        .on('mouseenter', function (event, d) {
+          d3.select(this).attr('fill', '#1e3a8a');
+          var bx = margin.left + x(d.labelShort) + x.bandwidth() / 2;
+          var by = margin.top + y(d.total);
+          // Jaga agar tooltip tidak terpotong di tepi kiri/kanan container
+          var clampedX = Math.max(85, Math.min(width - 85, bx));
+          tooltip
+            .html(
+              '<div class="tt-month">' + escapeHtml(d.labelFull) + '</div>' +
+              '<div class="tt-amount">' + formatRp(d.total) + '</div>' +
+              '<div class="tt-count">' + d.count + ' transaksi donasi</div>'
+            )
+            .style('left', clampedX + 'px')
+            .style('top', Math.max(12, by - 4) + 'px')
+            .classed('visible', true);
+        })
+        .on('mouseleave', function () {
+          d3.select(this).attr('fill', '#1d4ed8');
+          tooltip.classed('visible', false);
+        });
+    }
+
+    var chartResizeTimer = null;
+    window.addEventListener('resize', function () {
+      if (monthlyTrendState !== 'ready') return;
+      clearTimeout(chartResizeTimer);
+      chartResizeTimer = setTimeout(function () {
+        var dashView = document.getElementById('view-dashboard');
+        if (dashView && dashView.classList.contains('active')) {
+          renderMonthlyTrendChart();
+        }
+      }, 150);
+    });
+
     function loadDashboard() {
       var wrap = document.getElementById('dashboardList');
       wrap.innerHTML = '<div class="modern-loader"><div class="modern-spinner"></div><p>Menarik data terbaru dari server...</p></div>';
       callBackend('getDashboardData').then(function (res) {
-        if (res.success) renderDashboard(res.data);
-        else showError(res);
+        if (res.success) {
+          cachedDashboardPrograms = res.data || [];
+          monthlyTrendState = 'loading';
+          renderDashboard(cachedDashboardPrograms);
+          loadMonthlyDonationTrend(cachedDashboardPrograms);
+        } else {
+          wrap.innerHTML = '<div class="card"><p class="empty" style="color:var(--red)">Gagal memuat dashboard: ' + escapeHtml(res.message || 'Kesalahan server') + '</p></div>';
+          showError(res);
+        }
       });
+    }
+
+    function setDashboardFilter(status) {
+      dashboardFilterStatus = status;
+      renderDashboard(cachedDashboardPrograms);
+    }
+
+    function setDashboardSearch(val) {
+      dashboardSearchQuery = val;
+      renderDashboard(cachedDashboardPrograms);
+    }
+
+    function renderProgramCardHtml(p, isInactive) {
+      var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
+      var statusCls = isInactive ? 'status-text selesai' : 'status-text';
+      var cardCls = isInactive ? 'card prog-card inactive-card' : 'card prog-card';
+
+      return '<div class="' + cardCls + '">' +
+        '<div>' +
+          '<div class="prog-meta-line">' +
+            '<span class="' + statusCls + '">' + escapeHtml(p.status || 'Aktif') + '</span>' +
+            (p.targetDana > 0 ? '<span style="color:var(--muted);">·</span><span style="color:var(--muted); font-weight:500;" class="mono">' + pct + '% tercapai</span>' : '') +
+          '</div>' +
+          '<h3>' + escapeHtml(p.nama) + '</h3>' +
+          '<div class="desc">' + escapeHtml(p.deskripsi || 'Tidak ada deskripsi tambahan.') + '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="ledger-rows">' +
+            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
+            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
+            '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
+          '</div>' +
+          (p.targetDana > 0
+            ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
+              '<div class="prog-target-row"><span>Target: ' + formatRp(p.targetDana) + '</span><span>' + pct + '%</span></div>'
+            : '') +
+          '<div class="actions">' +
+            '<button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + escapeHtml(p.id) + '\')">Ubah Status</button>' +
+            '<button class="btn small" style="flex:2;" onclick="openDetail(\'' + escapeHtml(p.id) + '\')">Detail &amp; PDF</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
     }
 
     function renderDashboard(programs) {
       var wrap = document.getElementById('dashboardList');
-      wrap.classList.remove('grid'); // Hapus ikatan grid dari wadah luar
-      
-      if (!programs.length) {
-        wrap.innerHTML = '<p class="empty">Belum ada program. Silakan buat program di menu "Program & Donasi".</p>';
+
+      if (!programs || !programs.length) {
+        wrap.innerHTML = '<div class="card"><p class="empty">Belum ada program. Silakan buat program di menu Program &amp; Donasi.</p></div>';
         return;
       }
-      
-      // Memisahkan program menjadi dua kelompok
-      var progAktif = programs.filter(function(p) { return p.status !== 'Tidak Aktif' && p.status !== 'Selesai'; });
-      var progTidakAktif = programs.filter(function(p) { return p.status === 'Tidak Aktif' || p.status === 'Selesai'; });
-      
-      var html = '';
-      
-      // 1. Menggambar kelompok Program Aktif di atas
-      if (progAktif.length > 0) {
-        html += '<h2 style="font-size: 16px; margin: 0 0 10px 0; color: var(--primary-dark);">🟢 Program Aktif</h2>';
-        html += '<div class="grid">'; // Mulai wadah grid khusus kartu
-        progAktif.forEach(function (p) {
-          var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
-          html += '<div class="card prog-card">' +
-            '<h3>' + p.nama + '<span class="status-badge">' + p.status + '</span></h3>' +
-            '<div class="desc">' + (p.deskripsi || '') + '</div>' +
-            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
-            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
-            '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
-            (p.targetDana > 0 ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div><div class="row-num"><span style="color:var(--muted);font-size:11px;">Target: ' + formatRp(p.targetDana) + '</span><span style="font-size:11px;">' + pct + '%</span></div>' : '') +
-            '<div class="actions" style="margin-top:15px; display:flex; gap:8px;"><button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + p.id + '\')">Ubah Status</button><button class="btn small" style="flex:2;" onclick="openDetail(\'' + p.id + '\')">Detail & PDF</button></div>' +
-            '</div>';
-        });
-        html += '</div>'; // Tutup wadah grid
-      }
-      
-      // 2. Menggambar kelompok Program Selesai/Tidak Aktif di bawah
-      if (progTidakAktif.length > 0) {
-        html += '<h2 style="font-size: 16px; margin: 20px 0 10px 0; color: var(--muted);">⚪ Program Selesai / Tidak Aktif</h2>';
-        html += '<div class="grid">'; // Mulai wadah grid khusus kartu
-        progTidakAktif.forEach(function (p) {
-          var pct = p.targetDana > 0 ? Math.min(100, Math.round((p.totalMasuk / p.targetDana) * 100)) : 0;
-          html += '<div class="card prog-card" style="opacity: 0.75;">' +
-            '<h3>' + p.nama + '<span class="status-badge selesai">' + p.status + '</span></h3>' +
-            '<div class="desc">' + (p.deskripsi || '') + '</div>' +
-            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
-            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
-            '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
-            (p.targetDana > 0 ? '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div><div class="row-num"><span style="color:var(--muted);font-size:11px;">Target: ' + formatRp(p.targetDana) + '</span><span style="font-size:11px;">' + pct + '%</span></div>' : '') +
-            '<div class="actions" style="margin-top:15px; display:flex; gap:8px;"><button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + p.id + '\')">Ubah Status</button><button class="btn small" style="flex:2;" onclick="openDetail(\'' + p.id + '\')">Detail & PDF</button></div>' +
-            '</div>';
-        });
-        html += '</div>'; // Tutup wadah grid
-      }
-      
-      wrap.innerHTML = html;
-    }
 
-    function openDetail(programId) {
-      showView('detail');
-      document.getElementById('detailContent').innerHTML = '<div class="modern-loader" style="padding:50px 20px;"><div class="modern-spinner"></div><p>Memuat detail, mohon tunggu...</p></div>';
-      callBackend('getProgramDetail', { programId: programId }).then(function (res) {
-        if (res.success) renderDetail(res.data, programId);
-        else showError(res);
+      // Hitung ringkasan KPI dari seluruh program
+      var sumMasuk = 0, sumSalur = 0, sumSaldo = 0, countAktif = 0, countSelesai = 0;
+      programs.forEach(function (p) {
+        sumMasuk += Number(p.totalMasuk || 0);
+        sumSalur += Number(p.totalTersalurkan || 0);
+        sumSaldo += Number(p.saldo || 0);
+        if (p.status === 'Tidak Aktif' || p.status === 'Selesai') countSelesai++;
+        else countAktif++;
       });
+
+      var html = '';
+
+      // 1. KPI Summary Strip
+      html += '<div class="kpi-strip">' +
+        '<div class="kpi-cell">' +
+          '<span class="kpi-label">Total Program</span>' +
+          '<span class="kpi-value">' + programs.length + '</span>' +
+          '<span class="kpi-sub">' + countAktif + ' aktif · ' + countSelesai + ' selesai</span>' +
+        '</div>' +
+        '<div class="kpi-cell">' +
+          '<span class="kpi-label">Total Dana Masuk</span>' +
+          '<span class="kpi-value green">' + formatRp(sumMasuk) + '</span>' +
+          '<span class="kpi-sub">Akumulasi donasi tercatat</span>' +
+        '</div>' +
+        '<div class="kpi-cell">' +
+          '<span class="kpi-label">Sudah Tersalurkan</span>' +
+          '<span class="kpi-value primary">' + formatRp(sumSalur) + '</span>' +
+          '<span class="kpi-sub">Realisasi bantuan selesai</span>' +
+        '</div>' +
+        '<div class="kpi-cell">' +
+          '<span class="kpi-label">Total Sisa Saldo</span>' +
+          '<span class="kpi-value">' + formatRp(sumSaldo) + '</span>' +
+          '<span class="kpi-sub">Kas tersedia lintas program</span>' +
+        '</div>' +
+      '</div>';
+
+      // 2. Grafik Batang Tren Donasi Bulanan (D3.js)
+      html += '<div class="card chart-card">' +
+        '<div class="chart-header">' +
+          '<div>' +
+            '<h3>Tren Donasi Bulanan</h3>' +
+            '<p>Total dana donasi masuk per bulan dari seluruh program bantuan</p>' +
+          '</div>' +
+          '<div class="chart-meta" id="monthlyChartMeta"></div>' +
+        '</div>' +
+        '<div class="chart-body" id="monthlyDonationChart"></div>' +
+      '</div>';
+
+      // 3. Filter & Search Toolbar
+      html += '<div class="toolbar">' +
+        '<div class="search-box">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>' +
+          '<input type="text" id="dashboardSearchInput" placeholder="Cari nama atau deskripsi program..." value="' + escapeHtml(dashboardSearchQuery) + '">' +
+        '</div>' +
+        '<div class="segmented" role="group" aria-label="Filter status program">' +
+          '<button type="button" class="' + (dashboardFilterStatus === 'all' ? 'active' : '') + '" onclick="setDashboardFilter(\'all\')">Semua (' + programs.length + ')</button>' +
+          '<button type="button" class="' + (dashboardFilterStatus === 'aktif' ? 'active' : '') + '" onclick="setDashboardFilter(\'aktif\')">Aktif (' + countAktif + ')</button>' +
+          '<button type="button" class="' + (dashboardFilterStatus === 'selesai' ? 'active' : '') + '" onclick="setDashboardFilter(\'selesai\')">Selesai (' + countSelesai + ')</button>' +
+        '</div>' +
+      '</div>';
+
+      // Filter list client-side
+      var q = dashboardSearchQuery.trim().toLowerCase();
+      var filtered = programs.filter(function (p) {
+        var isSelesai = p.status === 'Tidak Aktif' || p.status === 'Selesai';
+        if (dashboardFilterStatus === 'aktif' && isSelesai) return false;
+        if (dashboardFilterStatus === 'selesai' && !isSelesai) return false;
+        if (q) {
+          var hay = ((p.nama || '') + ' ' + (p.deskripsi || '')).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+
+      var progAktif = filtered.filter(function (p) { return p.status !== 'Tidak Aktif' && p.status !== 'Selesai'; });
+      var progTidakAktif = filtered.filter(function (p) { return p.status === 'Tidak Aktif' || p.status === 'Selesai'; });
+
+      if (filtered.length === 0) {
+        html += '<div class="card"><p class="empty">Tidak ada program yang sesuai dengan filter atau kata kunci pencarian.</p></div>';
+      } else {
+        if (progAktif.length > 0) {
+          html += '<div class="section-group-title"><h3>Program Aktif</h3><span>' + progAktif.length + ' program</span></div>';
+          html += '<div class="grid">';
+          progAktif.forEach(function (p) { html += renderProgramCardHtml(p, false); });
+          html += '</div>';
+        }
+
+        if (progTidakAktif.length > 0) {
+          html += '<div class="section-group-title"><h3>Program Selesai / Tidak Aktif</h3><span>' + progTidakAktif.length + ' program</span></div>';
+          html += '<div class="grid">';
+          progTidakAktif.forEach(function (p) { html += renderProgramCardHtml(p, true); });
+          html += '</div>';
+        }
+      }
+
+      wrap.innerHTML = html;
+
+      // Render grafik D3 menggunakan state saat ini (tanpa fetch ulang saat filter berubah)
+      renderMonthlyTrendChart();
+
+      // Re-attach live search input listener while keeping cursor focus cleanly
+      var searchEl = document.getElementById('dashboardSearchInput');
+      if (searchEl) {
+        searchEl.addEventListener('input', function (e) {
+          var pos = e.target.selectionStart;
+          setDashboardSearch(e.target.value);
+          var newEl = document.getElementById('dashboardSearchInput');
+          if (newEl) {
+            newEl.focus();
+            try { newEl.setSelectionRange(pos, pos); } catch (err) {}
+          }
+        });
+      }
     }
 
     function openDetail(programId) {
       showView('detail');
-      document.getElementById('detailContent').innerHTML = '<div class="modern-loader" style="padding:50px 20px;"><div class="modern-spinner"></div><p>Memuat detail, mohon tunggu...</p></div>';
+      document.getElementById('detailContent').innerHTML = '<div class="card"><div class="modern-loader"><div class="modern-spinner"></div><p>Memuat detail laporan program, mohon tunggu...</p></div></div>';
       callBackend('getProgramDetail', { programId: programId }).then(function (res) {
         if (res.success) renderDetail(res.data, programId);
         else showError(res);
@@ -703,29 +2222,29 @@
       // HALAMAN 1: COVER & RINGKASAN EKSEKUTIF
       // ==========================================
       html += '<div class="print-page">';
-      
+
       // Kop Surat
-      html += '<table style="width:100%; border-collapse:collapse; margin-bottom:15px;"><tr>';
-      html += '<td style="width:90px;"><img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:85px; height:85px; object-fit:contain;" alt="Logo"></td>';
-      html += '<td style="text-align:center;"><h1 style="margin:0; font-size:22px; color:#1e293b; text-transform:uppercase;">Yayasan Salam Satu Aspal</h1><p style="margin:4px 0 0; font-size:10px; color:#475569; line-height:1.4;">Akte Notaris No. 5 Tgl 02 Agustus 2022 | SK MENKUMHAM AHU-0024199.AH.01.12<br>Jalan H. Mean Raya No. 72 RT 001 RW 002, Karang Timur, Karang Tengah, Tangerang 15157 | Telp/WA: 081385009062</p></td>';
-      html += '</tr></table><hr style="border-top:3px solid #1e293b; border-bottom:1px solid #1e293b; padding:1px 0; margin-bottom:25px;">';
+      html += '<table style="width:100%; border-collapse:collapse; margin-bottom:15px; min-width:0;"><tr>';
+      html += '<td style="width:90px; border:none; padding:4px;"><img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:85px; height:85px; object-fit:contain;" alt="Logo YASSA"></td>';
+      html += '<td style="text-align:center; border:none; padding:4px;"><h1 style="margin:0; font-size:22px; color:#1e293b; text-transform:uppercase;">Yayasan Salam Satu Aspal</h1><p style="margin:4px 0 0; font-size:10px; color:#475569; line-height:1.4;">Akte Notaris No. 5 Tgl 02 Agustus 2022 | SK MENKUMHAM AHU-0024199.AH.01.12<br>Jalan H. Mean Raya No. 72 RT 001 RW 002, Karang Timur, Karang Tengah, Tangerang 15157 | Telp/WA: 081385009062</p></td>';
+      html += '</tr></table><hr style="border:none; border-top:3px solid #1e293b; border-bottom:1px solid #1e293b; padding:1px 0; margin-bottom:25px;">';
 
       html += '<h2 style="text-align:center; margin-bottom:5px; text-transform:uppercase;">Laporan Pertanggungjawaban</h2>';
-      html += '<h3 style="text-align:center; color:var(--primary); margin-top:0; margin-bottom:25px;">' + (p.Nama || '-') + '</h3>';
-      
-      html += '<table style="width:100%; margin-bottom:30px; line-height:1.6;">';
-      html += '<tr><td style="width:150px;"><b>Deskripsi Program</b></td><td>: ' + (p.Deskripsi || '-') + '</td></tr>';
-      html += '<tr><td><b>Periode Pelaksanaan</b></td><td>: ' + fmtDate(p.TanggalMulai) + ' s/d ' + fmtDate(p.TanggalSelesai) + '</td></tr>';
-      html += '<tr><td><b>Target Dana</b></td><td>: ' + formatRp(p.TargetDana) + '</td></tr>';
+      html += '<h3 style="text-align:center; color:var(--primary); margin-top:0; margin-bottom:25px;">' + escapeHtml(p.Nama || '-') + '</h3>';
+
+      html += '<table style="width:100%; margin-bottom:28px; line-height:1.6; min-width:0;">';
+      html += '<tr><td style="width:165px; border:none; padding:4px 0;"><b>Deskripsi Program</b></td><td style="border:none; padding:4px 0;">: ' + escapeHtml(p.Deskripsi || '-') + '</td></tr>';
+      html += '<tr><td style="border:none; padding:4px 0;"><b>Periode Pelaksanaan</b></td><td style="border:none; padding:4px 0;">: ' + fmtDate(p.TanggalMulai) + ' s/d ' + fmtDate(p.TanggalSelesai) + '</td></tr>';
+      html += '<tr><td style="border:none; padding:4px 0;"><b>Target Dana</b></td><td style="border:none; padding:4px 0;" class="mono">: ' + formatRp(p.TargetDana) + '</td></tr>';
       html += '</table>';
 
-      html += '<h4>Ringkasan Keuangan</h4>';
+      html += '<h4 style="margin-bottom:8px;">Ringkasan Keuangan</h4>';
       html += '<table class="print-table">';
-      html += '<tr><td>Total Dana Masuk (Donasi)</td><td style="text-align:right; font-weight:bold; color:var(--green);">' + formatRp(detail.totalMasuk) + '</td></tr>';
-      html += '<tr><td>Total Dana Bantuan Tersalurkan</td><td style="text-align:right; font-weight:bold; color:var(--primary);">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
-      html += '<tr><td>Total Biaya Transport / Operasional</td><td style="text-align:right; font-weight:bold; color:#d97706;">' + formatRp(detail.totalTransport) + '</td></tr>';
-      html += '<tr><td>Total Dana Terjadwal (Belum Selesai)</td><td style="text-align:right; font-weight:bold;">' + formatRp(detail.totalTerjadwal) + '</td></tr>';
-      html += '<tr style="background-color:#f1f5f9;"><td><b>Sisa Saldo Akhir</b></td><td style="text-align:right; font-weight:bold; font-size:15px;">' + formatRp(detail.saldo) + '</td></tr>';
+      html += '<tr><td>Total Dana Masuk (Donasi)</td><td class="mono" style="text-align:right; font-weight:bold; color:var(--green);">' + formatRp(detail.totalMasuk) + '</td></tr>';
+      html += '<tr><td>Total Dana Bantuan Tersalurkan</td><td class="mono" style="text-align:right; font-weight:bold; color:var(--primary);">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
+      html += '<tr><td>Total Biaya Transport / Operasional</td><td class="mono" style="text-align:right; font-weight:bold; color:var(--amber);">' + formatRp(detail.totalTransport) + '</td></tr>';
+      html += '<tr><td>Total Dana Terjadwal (Belum Selesai)</td><td class="mono" style="text-align:right; font-weight:bold;">' + formatRp(detail.totalTerjadwal) + '</td></tr>';
+      html += '<tr style="background-color:#f1f5f9;"><td><b>Sisa Saldo Akhir</b></td><td class="mono" style="text-align:right; font-weight:bold; font-size:15px;">' + formatRp(detail.saldo) + '</td></tr>';
       html += '</table>';
       html += '</div>'; // End Halaman 1
 
@@ -733,44 +2252,41 @@
       // HALAMAN 2: RINCIAN TABEL & PENGESAHAN
       // ==========================================
       html += '<div class="print-page page-break">';
-      
-      // Tabel Donasi
-      html += '<h4>A. Rincian Donasi Masuk</h4>';
+
+      html += '<h4 style="margin-bottom:8px;">A. Rincian Donasi Masuk</h4>';
       if (detail.donasi && detail.donasi.length > 0) {
         html += '<table class="print-table"><thead><tr><th>No</th><th>Nama Donatur</th><th>Tanggal</th><th>Metode</th><th style="text-align:right;">Nominal (Rp)</th></tr></thead><tbody>';
-        detail.donasi.forEach(function(d, i) {
-          html += '<tr><td style="text-align:center;">' + (i+1) + '</td><td>' + d.NamaDonatur + '</td><td>' + fmtDate(d.Tanggal) + '</td><td>' + (d.Metode||'-') + '</td><td style="text-align:right;">' + formatRp(d.Jumlah) + '</td></tr>';
+        detail.donasi.forEach(function (d, i) {
+          html += '<tr><td class="mono" style="text-align:center;">' + (i + 1) + '</td><td>' + escapeHtml(d.NamaDonatur) + '</td><td>' + fmtDate(d.Tanggal) + '</td><td>' + escapeHtml(d.Metode || '-') + '</td><td class="mono" style="text-align:right;">' + formatRp(d.Jumlah) + '</td></tr>';
         });
         html += '</tbody></table>';
       } else {
-        html += '<p style="font-size:12px; font-style:italic; margin-bottom:20px;">Belum ada donasi masuk.</p>';
+        html += '<p style="font-size:12px; font-style:italic; margin-bottom:20px; color:var(--muted);">Belum ada donasi masuk.</p>';
       }
 
-      // Tabel Distribusi (Dengan Kolom Ref)
-      html += '<h4>B. Rincian Distribusi Bantuan</h4>';
+      html += '<h4 style="margin-bottom:8px;">B. Rincian Distribusi Bantuan</h4>';
       if (detail.penyaluran && detail.penyaluran.length > 0) {
         html += '<table class="print-table"><thead><tr><th>Kode</th><th>Nama Penerima</th><th>Wilayah / PIC</th><th>Item Bantuan</th><th style="text-align:right;">Nilai (Rp)</th><th style="text-align:right;">Transport (Rp)</th><th style="text-align:center;">Ref. Lampiran</th></tr></thead><tbody>';
-        detail.penyaluran.forEach(function(py, i) {
+        detail.penyaluran.forEach(function (py, i) {
           var numStr = (i + 1) < 10 ? '00' + (i + 1) : ((i + 1) < 100 ? '0' + (i + 1) : (i + 1));
           var kode = 'LMP-' + numStr;
           var refTeks = py.Status === 'Selesai' ? 'Lihat <b>' + kode + '</b>' : '<i>Terjadwal</i>';
-          
+
           html += '<tr>' +
-            '<td style="text-align:center;"><b>' + kode + '</b></td>' +
-            '<td><b>' + py.NamaPenerima + '</b><br><small>Umur: ' + (py.Umur||'-') + ' | Alm: ' + (py.NamaOrtuAlm||'-') + '</small></td>' +
-            '<td>' + py.Wilayah + '<br><small>PIC: ' + py.PIC + '</small></td>' +
-            '<td>' + py.ItemBantuan + '</td>' +
-            '<td style="text-align:right;">' + formatRp(py.NilaiRp) + '</td>' +
-            '<td style="text-align:right;">' + (py.UangTransport ? formatRp(py.UangTransport) : '-') + '</td>' +
+            '<td class="mono" style="text-align:center;"><b>' + kode + '</b></td>' +
+            '<td><b>' + escapeHtml(py.NamaPenerima) + '</b><br><small>Umur: ' + escapeHtml(py.Umur || '-') + ' | Alm: ' + escapeHtml(py.NamaOrtuAlm || '-') + '</small></td>' +
+            '<td>' + escapeHtml(py.Wilayah) + '<br><small>PIC: ' + escapeHtml(py.PIC) + '</small></td>' +
+            '<td>' + escapeHtml(py.ItemBantuan) + '</td>' +
+            '<td class="mono" style="text-align:right;">' + formatRp(py.NilaiRp) + '</td>' +
+            '<td class="mono" style="text-align:right;">' + (py.UangTransport ? formatRp(py.UangTransport) : '-') + '</td>' +
             '<td style="text-align:center;">' + refTeks + '</td>' +
           '</tr>';
         });
         html += '</tbody></table>';
       } else {
-        html += '<p style="font-size:12px; font-style:italic;">Belum ada penyaluran bantuan.</p>';
+        html += '<p style="font-size:12px; font-style:italic; color:var(--muted);">Belum ada penyaluran bantuan.</p>';
       }
 
-      // Lembar Pengesahan
       html += '<div class="ttd-container">';
       html += '<div class="ttd-box"><p>Disiapkan Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Korwil / PIC Program</p></div>';
       html += '<div class="ttd-box"><p>Diperiksa Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Bendahara Yayasan</p></div>';
@@ -782,104 +2298,96 @@
       // ==========================================
       // HALAMAN 3+: LAMPIRAN DOKUMENTASI (CROSS-REF)
       // ==========================================
-      var adaLampiran = detail.penyaluran.some(function(py) { return py.Status === 'Selesai'; });
+      var adaLampiran = detail.penyaluran && detail.penyaluran.some(function (py) { return py.Status === 'Selesai'; });
       if (adaLampiran) {
         html += '<div class="print-page page-break">';
         html += '<h3 style="margin-bottom:20px; border-bottom:2px solid #e2e8f0; padding-bottom:10px;">Lampiran Dokumentasi Penyaluran</h3>';
-        
-        detail.penyaluran.forEach(function(py, i) {
-          if (py.Status !== 'Selesai') return; // Lewati yang belum di-upload buktinya
-          
+
+        detail.penyaluran.forEach(function (py, i) {
+          if (py.Status !== 'Selesai') return;
+
           var numStr = (i + 1) < 10 ? '00' + (i + 1) : ((i + 1) < 100 ? '0' + (i + 1) : (i + 1));
           var kode = 'LMP-' + numStr;
-          
+
           html += '<div class="lampiran-block">';
-          html += '<h4 style="margin:0 0 8px; color:var(--primary-dark); font-size:16px;">KODE REFERENSI: ' + kode + '</h4>';
-          html += '<p style="margin:0 0 6px; font-size:13px;"><b>Nama Penerima:</b> ' + py.NamaPenerima + ' | <b>Wilayah:</b> ' + py.Wilayah + ' | <b>Tgl Realisasi:</b> ' + fmtDate(py.TanggalRealisasi) + '</p>';
-          
+          html += '<h4 class="mono" style="margin:0 0 8px; color:var(--primary-dark); font-size:15px;">KODE REFERENSI: ' + kode + '</h4>';
+          html += '<p style="margin:0 0 6px; font-size:13px;"><b>Nama Penerima:</b> ' + escapeHtml(py.NamaPenerima) + ' | <b>Wilayah:</b> ' + escapeHtml(py.Wilayah) + ' | <b>Tgl Realisasi:</b> ' + fmtDate(py.TanggalRealisasi) + '</p>';
+
           var uangTransportPy = py.UangTransport || 0;
           var totalGabungan = (Number(py.NilaiRp) || 0) + Number(uangTransportPy);
           html += '<p style="margin:0 0 12px; font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:6px 10px; display:inline-block;">';
-          html += 'Total Belanja: <b>' + formatRp(py.NilaiRp) + '</b> + Total Transport: <b>' + formatRp(uangTransportPy) + '</b> = <b style="color:var(--primary);">' + formatRp(totalGabungan) + '</b>';
+          html += 'Total Belanja: <b class="mono">' + formatRp(py.NilaiRp) + '</b> + Total Transport: <b class="mono">' + formatRp(uangTransportPy) + '</b> = <b class="mono" style="color:var(--primary);">' + formatRp(totalGabungan) + '</b>';
           html += '</p>';
-          
-          // Kumpulkan semua gambar (Foto dan Kwitansi)
+
           var imagesHtml = '';
-          [py.BuktiFotoURL, py.BuktiFotoURL2, py.BuktiFotoURL3, py.BuktiFotoURL4, py.BuktiFotoURL5].forEach(function(url) {
+          [py.BuktiFotoURL, py.BuktiFotoURL2, py.BuktiFotoURL3, py.BuktiFotoURL4, py.BuktiFotoURL5].forEach(function (url) {
             var direct = driveDirectUrl_(url);
             if (direct) imagesHtml += '<div><img src="' + direct + '" alt="Foto Kegiatan"><p style="font-size:11px; font-weight:600; color:#475569; margin:4px 0 0;">Bukti Dokumentasi Kegiatan</p></div>';
           });
-          [py.KwitansiURL, py.KwitansiURL2, py.KwitansiURL3, py.KwitansiURL4, py.KwitansiURL5].forEach(function(url) {
+          [py.KwitansiURL, py.KwitansiURL2, py.KwitansiURL3, py.KwitansiURL4, py.KwitansiURL5].forEach(function (url) {
             var direct = driveDirectUrl_(url);
             if (direct) imagesHtml += '<div><img src="' + direct + '" alt="Bukti Kwitansi"><p style="font-size:11px; font-weight:600; color:#475569; margin:4px 0 0;">Bukti Kwitansi / Nota Belanja</p></div>';
           });
-          
+
           if (imagesHtml === '') {
             html += '<p style="font-size:12px; color:#999; font-style:italic;">Tidak ada foto atau kwitansi yang diunggah.</p>';
           } else {
             html += '<div class="lampiran-images">' + imagesHtml + '</div>';
           }
-          html += '</div>'; // End lampiran-block
+          html += '</div>';
         });
-        html += '</div>'; // End Halaman 3+
+        html += '</div>';
       }
 
       html += '</div>'; // End cetakArea
 
-      // Tombol Aksi di Layar (Hanya tampil di HP/Web, hilang saat dicetak)
       var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|']/g, '-').trim();
-      html += '<div class="actions no-print" style="margin-top:25px; display:flex; flex-direction:column; gap:10px;">';
-      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:#1e40af; color:#ffffff;" onclick="cetakLaporanFrontend(\'' + namaFileAman + '\')">🖨️ Cetak Manual (Simpan ke HP/Laptop)</button>';
-      html += '<button class="btn" style="width:100%; font-size:15px; padding:14px; background-color:#10b981; color:#ffffff;" onclick="simpanOtomatisKeDrive(\'' + namaFileAman + '\')">☁️ Simpan Otomatis ke Google Drive</button>';
+      html += '<div class="actions detail-actions-bar no-print">';
+      html += '<button class="btn" style="padding:13px 18px;" onclick="cetakLaporanFrontend(\'' + escapeHtml(namaFileAman) + '\')">Cetak Manual (Simpan ke HP/Laptop)</button>';
+      html += '<button class="btn emerald" style="padding:13px 18px;" onclick="simpanOtomatisKeDrive(\'' + escapeHtml(namaFileAman) + '\')">Simpan Otomatis ke Google Drive</button>';
       html += '</div>';
 
       document.getElementById('detailContent').innerHTML = html;
     }
 
-    // ====== HELPER CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
+    // ====== CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
     function cetakLaporanFrontend(namaProgram) {
       if (!isEditor()) {
-        toast('🔒 Hanya Superadmin/Admin yang bisa mencetak laporan. Silakan login.');
+        toast('Hanya Superadmin/Admin yang bisa mencetak laporan. Silakan login.');
         promptLogin();
         return;
       }
-      // 1. Ubah judul tab saat ini juga
-      document.title = "LPJ " + namaProgram;
-      
-      // 2. Beri jeda agak lama (1 detik) sebelum memanggil menu Print
-      // Ini wajib untuk HP Android agar sistem punya waktu membaca judul baru
-      setTimeout(function() {
+      document.title = 'LPJ ' + namaProgram;
+
+      setTimeout(function () {
         window.print();
       }, 1000);
 
-      // 3. Kembalikan judul dari APP_CONFIG hanya saat menu print ditutup
-      window.addEventListener('focus', function() {
-        setTimeout(function() {
+      window.addEventListener('focus', function () {
+        setTimeout(function () {
           document.title = APP_CONFIG.namaAplikasi;
         }, 500);
       }, { once: true });
     }
 
-    // ====== FUNGSI BARU: SIMPAN OTOMATIS KE DRIVE ======
+    // ====== SIMPAN OTOMATIS KE DRIVE ======
     function simpanOtomatisKeDrive(namaProgram) {
       if (!isEditor()) {
-        toast('🔒 Hanya Superadmin/Admin yang bisa mencetak/menyimpan laporan. Silakan login.');
+        toast('Hanya Superadmin/Admin yang bisa mencetak/menyimpan laporan. Silakan login.');
         promptLogin();
         return;
       }
-      if (isSubmitting) return; 
-      
+      if (isSubmitting) return;
+
       var areaCetak = document.getElementById('cetakArea');
       if (!areaCetak) return;
-      
-      // Gandakan HTML agar layar asli tidak rusak saat kita edit
+
       var cloneHtml = areaCetak.cloneNode(true);
-      
-      // 1. UBAH TANDA TANGAN JADI TABEL (Agar server Google tidak menumpuknya di kiri)
+
       var ttd = cloneHtml.querySelector('.ttd-container');
       if (ttd) {
         var ttdTable = document.createElement('table');
-        ttdTable.style.cssText = "width:100%; margin-top:40px; text-align:center; border:none; page-break-inside:avoid;";
+        ttdTable.style.cssText = 'width:100%; margin-top:40px; text-align:center; border:none; page-break-inside:avoid;';
         ttdTable.innerHTML = '<tr>' +
           '<td style="width:33%; border:none; padding:10px;"><p style="margin:0;">Disiapkan Oleh,</p><div style="height:70px;"></div><p style="margin:0;"><b>(___________________)</b><br>Korwil / PIC Program</p></td>' +
           '<td style="width:33%; border:none; padding:10px;"><p style="margin:0;">Diperiksa Oleh,</p><div style="height:70px;"></div><p style="margin:0;"><b>(___________________)</b><br>Bendahara Yayasan</p></td>' +
@@ -887,62 +2395,58 @@
           '</tr>';
         ttd.parentNode.replaceChild(ttdTable, ttd);
       }
-      
-      // 2. UBAH LAMPIRAN JADI TABEL 2 KOTAK (Agar server Google paham susunannya)
+
       var lampiranBlocks = cloneHtml.querySelectorAll('.lampiran-block');
-      lampiranBlocks.forEach(function(block) {
-        block.style.cssText = "border: 2px solid #333; padding: 15px; margin-top: 20px; page-break-inside: avoid; page-break-after: always;";
+      lampiranBlocks.forEach(function (block) {
+        block.style.cssText = 'border: 2px solid #333; padding: 15px; margin-top: 20px; page-break-inside: avoid; page-break-after: always;';
         var container = block.querySelector('.lampiran-images');
         if (!container) return;
-        
+
         var divs = container.querySelectorAll('div');
         if (divs.length === 0) return;
-        
+
         var tableHtml = '<table style="width:100%; border:none; margin-top:15px; table-layout:fixed;"><tr>';
-        divs.forEach(function(div, index) {
+        divs.forEach(function (div, index) {
           var img = div.querySelector('img');
-          // Paksa ukuran gambar di server Google agar proporsional setinggi 900px
-          if (img) img.style.cssText = "width:100%; height:900px; object-fit:contain; border:1px solid #ddd; padding:4px;";
-          
+          if (img) img.style.cssText = 'width:100%; height:900px; object-fit:contain; border:1px solid #ddd; padding:4px;';
+
           tableHtml += '<td style="width:50%; border:none; text-align:center; vertical-align:top; padding:10px;">' + div.innerHTML + '</td>';
-          
-          // Turun ke baris baru setiap kelipatan 2 foto
+
           if ((index + 1) % 2 === 0 && (index + 1) < divs.length) {
             tableHtml += '</tr><tr>';
           }
         });
         tableHtml += '</tr></table>';
-        
+
         var newDiv = document.createElement('div');
         newDiv.innerHTML = tableHtml;
         container.parentNode.replaceChild(newDiv, container);
       });
-      
+
       isSubmitting = true;
       showLoading('Menyiapkan dan Menyimpan PDF ke Google Drive...');
-      
-      // Kirim kembali wujud HTML yang sudah diubah ke Tabel ini ke Backend
+
       var payload = {
-        namaFile: "LPJ " + namaProgram,
+        namaFile: 'LPJ ' + namaProgram,
         htmlString: cloneHtml.innerHTML
       };
-      
-      callBackend('simpanPDFkeDrive', payload).then(function(res) {
+
+      callBackend('simpanPDFkeDrive', payload).then(function (res) {
         if (res.success) {
-          toast('✅ Berhasil disimpan ke Drive!');
-          setTimeout(function() { window.open(res.data.url, '_blank'); }, 1500);
+          toast('Berhasil disimpan ke Google Drive.');
+          setTimeout(function () { window.open(res.data.url, '_blank'); }, 1500);
         } else {
           showError('Gagal: ' + res.message);
         }
-      }).catch(function(err) {
+      }).catch(function (err) {
         showError(err);
-      }).finally(function() {
+      }).finally(function () {
         hideLoading();
         isSubmitting = false;
       });
     }
 
-    // ====== HELPER UTALITAS: KONVERSI GAMBAR KE BASE64 ======
+    // ====== KONVERSI GAMBAR KE BASE64 ======
     function readFileAsBase64(file) {
       return new Promise(function (resolve, reject) {
         if (!file) {
@@ -966,10 +2470,57 @@
       });
     }
 
+    // ====== FORM PROGRAM & DONASI HANDLERS ======
+    document.getElementById('formProgram').addEventListener('submit', function (e) {
+      e.preventDefault();
+      handleFormSubmit({
+        form: this,
+        loadingMsg: 'Menyimpan program bantuan baru...',
+        action: 'addProgram',
+        successMsg: 'Program bantuan berhasil dibuat.',
+        buildData: function () {
+          return {
+            nama: document.getElementById('p_nama').value,
+            deskripsi: document.getElementById('p_deskripsi').value,
+            targetDana: document.getElementById('p_target').value || 0,
+            tanggalMulai: document.getElementById('p_mulai').value,
+            tanggalSelesai: document.getElementById('p_selesai').value
+          };
+        },
+        onSuccess: function () {
+          loadProgramOptions();
+        }
+      });
+    });
+
+    document.getElementById('formDonasi').addEventListener('submit', function (e) {
+      e.preventDefault();
+      handleFormSubmit({
+        form: this,
+        loadingMsg: 'Mencatat donasi masuk...',
+        action: 'addDonasi',
+        successMsg: 'Donasi berhasil dicatat ke kas program.',
+        buildData: function () {
+          return {
+            programId: document.getElementById('d_program').value,
+            namaDonatur: document.getElementById('d_nama').value,
+            jumlah: document.getElementById('d_jumlah').value,
+            tanggal: document.getElementById('d_tanggal').value,
+            metode: document.getElementById('d_metode').value
+          };
+        },
+        onSuccess: function () {
+          var dTgl = document.getElementById('d_tanggal');
+          if (dTgl) dTgl.value = new Date().toISOString().split('T')[0];
+        }
+      });
+    });
+
+    // ====== FORM UPLOAD BUKTI PENYALURAN ======
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const inputs = {
+      var inputs = {
         f1: document.getElementById('bk_foto').files[0],
         f2: document.getElementById('bk_foto2').files[0],
         f3: document.getElementById('bk_foto3').files[0],
@@ -982,75 +2533,89 @@
         k5: document.getElementById('bk_kwitansi5').files[0]
       };
 
-      if (!Object.values(inputs).some(file => file !== undefined)) {
-        toast('❌ Isi minimal salah satu foto atau kwitansi.');
+      if (!Object.values(inputs).some(function (file) { return file !== undefined; })) {
+        toast('Isi minimal salah satu foto atau kwitansi.');
         return;
       }
 
       if (isSubmitting) {
-        toast('⏳ Mohon tunggu, permintaan sebelumnya sedang diproses...');
+        toast('Mohon tunggu, permintaan sebelumnya sedang diproses...');
         return;
       }
       isSubmitting = true;
 
-      const btn = document.getElementById('btnSubmitBukti');
-      const originalText = btn.textContent;
+      var btn = document.getElementById('btnSubmitBukti');
+      var originalText = btn.textContent;
       btn.disabled = true;
       btn.textContent = 'Mengunggah Data... (Mohon Tunggu)';
       showLoading('Mengunggah bukti foto & kwitansi...');
 
       try {
-        const dF1 = await readFileAsBase64(inputs.f1); const dF2 = await readFileAsBase64(inputs.f2);
-        const dF3 = await readFileAsBase64(inputs.f3); const dF4 = await readFileAsBase64(inputs.f4); const dF5 = await readFileAsBase64(inputs.f5);
-        
-        const dK1 = await readFileAsBase64(inputs.k1); const dK2 = await readFileAsBase64(inputs.k2);
-        const dK3 = await readFileAsBase64(inputs.k3); const dK4 = await readFileAsBase64(inputs.k4); const dK5 = await readFileAsBase64(inputs.k5);
+        var dF1 = await readFileAsBase64(inputs.f1);
+        var dF2 = await readFileAsBase64(inputs.f2);
+        var dF3 = await readFileAsBase64(inputs.f3);
+        var dF4 = await readFileAsBase64(inputs.f4);
+        var dF5 = await readFileAsBase64(inputs.f5);
+
+        var dK1 = await readFileAsBase64(inputs.k1);
+        var dK2 = await readFileAsBase64(inputs.k2);
+        var dK3 = await readFileAsBase64(inputs.k3);
+        var dK4 = await readFileAsBase64(inputs.k4);
+        var dK5 = await readFileAsBase64(inputs.k5);
 
         var data = {
           penyaluranId: document.getElementById('bk_id').value,
           tanggalRealisasi: document.getElementById('bk_tanggal').value,
-          nilaiRealisasi: document.getElementById('bk_nilai').value, // <-- Tambahan data belanja asli
+          nilaiRealisasi: document.getElementById('bk_nilai').value,
           uangTransport: document.getElementById('bk_transport').value,
-          fotoBase64: dF1?.base64 || '', fotoMime: dF1?.mime || '', fotoName: dF1?.name || '',
-          foto2Base64: dF2?.base64 || '', foto2Mime: dF2?.mime || '', foto2Name: dF2?.name || '',
-          foto3Base64: dF3?.base64 || '', foto3Mime: dF3?.mime || '', foto3Name: dF3?.name || '',
-          foto4Base64: dF4?.base64 || '', foto4Mime: dF4?.mime || '', foto4Name: dF4?.name || '',
-          foto5Base64: dF5?.base64 || '', foto5Mime: dF5?.mime || '', foto5Name: dF5?.name || '',
-          
-          kwitansiBase64: dK1?.base64 || '', kwitansiMime: dK1?.mime || '', kwitansiName: dK1?.name || '',
-          kwitansi2Base64: dK2?.base64 || '', kwitansi2Mime: dK2?.mime || '', kwitansi2Name: dK2?.name || '',
-          kwitansi3Base64: dK3?.base64 || '', kwitansi3Mime: dK3?.mime || '', kwitansi3Name: dK3?.name || '',
-          kwitansi4Base64: dK4?.base64 || '', kwitansi4Mime: dK4?.mime || '', kwitansi4Name: dK4?.name || '',
-          kwitansi5Base64: dK5?.base64 || '', kwitansi5Mime: dK5?.mime || '', kwitansi5Name: dK5?.name || ''
+          fotoBase64: (dF1 && dF1.base64) || '', fotoMime: (dF1 && dF1.mime) || '', fotoName: (dF1 && dF1.name) || '',
+          foto2Base64: (dF2 && dF2.base64) || '', foto2Mime: (dF2 && dF2.mime) || '', foto2Name: (dF2 && dF2.name) || '',
+          foto3Base64: (dF3 && dF3.base64) || '', foto3Mime: (dF3 && dF3.mime) || '', foto3Name: (dF3 && dF3.name) || '',
+          foto4Base64: (dF4 && dF4.base64) || '', foto4Mime: (dF4 && dF4.mime) || '', foto4Name: (dF4 && dF4.name) || '',
+          foto5Base64: (dF5 && dF5.base64) || '', foto5Mime: (dF5 && dF5.mime) || '', foto5Name: (dF5 && dF5.name) || '',
+
+          kwitansiBase64: (dK1 && dK1.base64) || '', kwitansiMime: (dK1 && dK1.mime) || '', kwitansiName: (dK1 && dK1.name) || '',
+          kwitansi2Base64: (dK2 && dK2.base64) || '', kwitansi2Mime: (dK2 && dK2.mime) || '', kwitansi2Name: (dK2 && dK2.name) || '',
+          kwitansi3Base64: (dK3 && dK3.base64) || '', kwitansi3Mime: (dK3 && dK3.mime) || '', kwitansi3Name: (dK3 && dK3.name) || '',
+          kwitansi4Base64: (dK4 && dK4.base64) || '', kwitansi4Mime: (dK4 && dK4.mime) || '', kwitansi4Name: (dK4 && dK4.name) || '',
+          kwitansi5Base64: (dK5 && dK5.base64) || '', kwitansi5Mime: (dK5 && dK5.mime) || '', kwitansi5Name: (dK5 && dK5.name) || ''
         };
 
         callBackend('lengkapiBuktiPenyaluran', data).then(function (res) {
           if (res.success) {
-            toast('✅ Bukti berhasil disimpan ke Drive & Distribusi Selesai!');
+            toast('Bukti berhasil disimpan ke Drive & Distribusi Selesai.');
             closeModal();
             loadTerjadwal();
             loadPenerimaOptions();
-          } else { showError(res); }
+          } else {
+            showError(res);
+          }
         }).catch(function (err) {
           showError(err);
         }).finally(function () {
-          btn.disabled = false; btn.textContent = originalText; hideLoading(); isSubmitting = false;
+          btn.disabled = false;
+          btn.textContent = originalText;
+          hideLoading();
+          isSubmitting = false;
         });
       } catch (error) {
-        btn.disabled = false; btn.textContent = originalText; hideLoading(); isSubmitting = false;
-        showError('Gagal membaca file gambar dari HP Anda.');
+        btn.disabled = false;
+        btn.textContent = originalText;
+        hideLoading();
+        isSubmitting = false;
+        showError('Gagal membaca file gambar dari perangkat Anda.');
       }
     });
 
-    // ====== FUNGSI BARU: SIMPAN DATA PENERIMA ======
+    // ====== SIMPAN DATA PENERIMA ======
     document.getElementById('formPenerima').addEventListener('submit', function (e) {
-      e.preventDefault(); // Mencegah halaman refresh
-      
+      e.preventDefault();
+
       handleFormSubmit({
         form: this,
         loadingMsg: 'Menyimpan data anak yatim...',
         action: 'addPenerima',
-        successMsg: '✅ Data anak yatim berhasil didaftarkan!',
+        successMsg: 'Data anak yatim berhasil didaftarkan.',
         buildData: function () {
           return {
             nama: document.getElementById('pm_nama').value,
@@ -1062,43 +2627,59 @@
           };
         },
         onSuccess: function () {
-          loadPenerimaTable(); // Otomatis memunculkan nama di tabel bawah
-          loadPenerimaOptions(); // Otomatis masuk ke pilihan dropdown jadwal distribusi
+          loadPenerimaTable();
+          loadPenerimaOptions();
         }
       });
     });
 
     // ---------- SHARED LOADERS ----------
-    // TAMBAHAN: fungsi ini sebelumnya dipanggil (saat buka menu "Data Penerima"
-    // dan setelah berhasil daftarkan penerima baru) tapi belum pernah dibuat,
-    // sehingga tabel "Database Penerima Manfaat" selalu kosong walau data
-    // sudah tersimpan di Sheet.
+    var cachedPenerimaList = [];
+
     function loadPenerimaTable() {
       var tbody = document.querySelector('#tabelPenerima tbody');
-      tbody.innerHTML = '<tr><td colspan="4" class="empty">Memuat data...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">Memuat data penerima manfaat...</td></tr>';
       callBackend('getAllPenerima').then(function (res) {
         if (!res.success) { showError(res); return; }
-        renderPenerimaTable(res.data);
+        cachedPenerimaList = res.data || [];
+        renderPenerimaTable(cachedPenerimaList);
       });
     }
 
     function renderPenerimaTable(list) {
       var tbody = document.querySelector('#tabelPenerima tbody');
-      if (!list || !list.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada data penerima manfaat.</td></tr>';
+      var qEl = document.getElementById('searchPenerima');
+      var q = qEl ? qEl.value.trim().toLowerCase() : '';
+
+      var filtered = (list || []).filter(function (pm) {
+        if (!q) return true;
+        var text = ((pm.Nama || '') + ' ' + (pm.Wilayah || '') + ' ' + (pm.Sekolah || '') + ' ' + (pm.Kelas || '') + ' ' + (pm.NamaOrtuAlm || '')).toLowerCase();
+        return text.indexOf(q) !== -1;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">' + (q ? 'Tidak ada penerima yang cocok dengan pencarian.' : 'Belum ada data penerima manfaat.') + '</td></tr>';
         return;
       }
+
       var html = '';
-      list.forEach(function (pm) {
+      filtered.forEach(function (pm) {
         var sekolahKelas = (pm.Sekolah || '-') + (pm.Kelas ? ' (' + pm.Kelas + ')' : '');
         html += '<tr>' +
-          '<td>' + (pm.Nama || '-') + '</td>' +
-          '<td>' + (pm.Wilayah || '-') + '</td>' +
-          '<td>' + sekolahKelas + '</td>' +
-          '<td>' + (pm.NamaOrtuAlm || '-') + '</td>' +
+          '<td><b>' + escapeHtml(pm.Nama || '-') + '</b></td>' +
+          '<td>' + escapeHtml(pm.Wilayah || '-') + '</td>' +
+          '<td>' + escapeHtml(sekolahKelas) + '</td>' +
+          '<td>' + escapeHtml(pm.NamaOrtuAlm || '-') + '</td>' +
           '</tr>';
       });
       tbody.innerHTML = html;
+    }
+
+    var searchPenerimaInput = document.getElementById('searchPenerima');
+    if (searchPenerimaInput) {
+      searchPenerimaInput.addEventListener('input', function () {
+        renderPenerimaTable(cachedPenerimaList);
+      });
     }
 
     function loadProgramOptions() {
@@ -1108,15 +2689,13 @@
           var sel = document.getElementById(id);
           if (!sel) return;
           sel.innerHTML = '<option value="">-- Pilih Program --</option>';
-          res.data.forEach(function (p) { sel.innerHTML += '<option value="' + p.ID + '">' + p.Nama + '</option>'; });
+          res.data.forEach(function (p) {
+            sel.innerHTML += '<option value="' + escapeHtml(p.ID) + '">' + escapeHtml(p.Nama) + '</option>';
+          });
         });
       });
     }
 
-    // TAMBAHAN: kumpulkan nama-nama penerima yang statusnya masih "menunggu
-    // bukti" (belum Selesai) di SEMUA program, supaya bisa disaring dari
-    // dropdown "Pilih Anak Penerima" -- mencegah anak yang sama dijadwalkan
-    // dobel sebelum bantuan sebelumnya selesai.
     function getPendingPenerimaNames() {
       return callBackend('getDashboardData').then(function (res) {
         if (!res.success) return [];
@@ -1140,16 +2719,15 @@
 
     function loadPenerimaOptions() {
       var sel = document.getElementById('py_penerima');
-      // Update teks menjadi lebih komunikatif
-      sel.innerHTML = '<option value="">⏳ Sedang memuat data anak yatim...</option>'; 
-      
+      sel.innerHTML = '<option value="">Sedang memuat data anak yatim...</option>';
+
       getPendingPenerimaNames().then(function (pendingNames) {
         callBackend('getAllPenerima').then(function (res) {
           if (!res.success) return;
           sel.innerHTML = '<option value="">-- Pilih Anak Yatim --</option>';
           res.data.forEach(function (pm) {
             if (pendingNames.indexOf(pm.Nama) === -1) {
-              sel.innerHTML += '<option value="' + pm.ID + '" data-wilayah="' + (pm.Wilayah || '').replace(/"/g, '&quot;') + '" data-kontak="' + (pm.Kontak || '').replace(/"/g, '&quot;') + '">' + pm.Nama + '</option>';
+              sel.innerHTML += '<option value="' + escapeHtml(pm.ID) + '" data-wilayah="' + escapeHtml(pm.Wilayah || '') + '" data-kontak="' + escapeHtml(pm.Kontak || '') + '">' + escapeHtml(pm.Nama) + '</option>';
             }
           });
           if (!res.data.length || res.data.every(function (pm) { return pendingNames.indexOf(pm.Nama) !== -1; })) {
@@ -1159,9 +2737,6 @@
       });
     }
 
-    // TAMBAHAN: auto-isi Nama Korwil/PIC (dari Kontak Wali) dan Wilayah Distribusi
-    // (dari Wilayah) begitu anak penerima dipilih. Tetap bisa diedit manual
-    // jika datanya belum ada / perlu dikoreksi.
     document.getElementById('py_penerima').addEventListener('change', function (e) {
       var opt = e.target.options[e.target.selectedIndex];
       if (!opt || !opt.value) return;
@@ -1173,14 +2748,14 @@
       document.getElementById('py_pic').value = kontak;
 
       if (!kontak) {
-        toast('ℹ️ Kontak Wali anak ini belum diisi saat pendaftaran, silakan isi PIC secara manual.');
+        toast('Kontak Wali anak ini belum diisi saat pendaftaran, silakan isi PIC secara manual.');
       }
     });
 
-    // ====== FUNGSI BARU: SIMPAN JADWAL DISTRIBUSI BANTUAN ======
+    // ====== SIMPAN JADWAL DISTRIBUSI BANTUAN ======
     document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
-      e.preventDefault(); // Mencegah layar refresh saat tombol ditekan
-      
+      e.preventDefault();
+
       var selPenerima = document.getElementById('py_penerima');
       var namaPenerimaText = selPenerima.options[selPenerima.selectedIndex].text;
 
@@ -1188,7 +2763,7 @@
         form: this,
         loadingMsg: 'Menjadwalkan bantuan...',
         action: 'addPenyaluran',
-        successMsg: '✅ Bantuan berhasil dijadwalkan!',
+        successMsg: 'Bantuan berhasil dijadwalkan.',
         buildData: function () {
           return {
             programId: document.getElementById('py_program').value,
@@ -1202,24 +2777,22 @@
           };
         },
         onSuccess: function () {
-          loadTerjadwal();       // Otomatis merefresh tabel jadwal di bawahnya
-          loadPenerimaOptions(); // Otomatis merefresh daftar pilihan anak yatim
+          loadTerjadwal();
+          loadPenerimaOptions();
         }
       });
     });
 
-    // ====== MODUL DISTRIBUSI & JADWAL (BARU) ======
-
+    // ====== MODUL DISTRIBUSI & JADWAL ======
     function loadTerjadwal() {
       var wrap = document.getElementById('listTerjadwal');
-      // Menggunakan animasi loader modern yang sudah kita buat di CSS
       wrap.innerHTML = '<div class="modern-loader"><div class="modern-spinner"></div><p>Menarik daftar jadwal bantuan...</p></div>';
 
-      callBackend('getTerjadwal').then(function(res) {
+      callBackend('getTerjadwal').then(function (res) {
         if (res.success) {
           renderTerjadwal(res.data);
         } else {
-          wrap.innerHTML = '<p class="empty" style="color:var(--red)">❌ Gagal memuat data: ' + res.message + '</p>';
+          wrap.innerHTML = '<p class="empty" style="color:var(--red)">Gagal memuat data: ' + escapeHtml(res.message) + '</p>';
         }
       });
     }
@@ -1227,17 +2800,17 @@
     function renderTerjadwal(list) {
       var wrap = document.getElementById('listTerjadwal');
       if (!list || list.length === 0) {
-        wrap.innerHTML = '<p class="empty">✅ Belum ada jadwal bantuan yang menunggu bukti pembagian.</p>';
+        wrap.innerHTML = '<p class="empty">Belum ada jadwal bantuan yang menunggu bukti pembagian.</p>';
         return;
       }
 
-      var html = '<table><thead><tr><th>Tgl Rencana</th><th>Nama Penerima</th><th>Bantuan</th><th>Aksi</th></tr></thead><tbody>';
-      list.forEach(function(item) {
-        var btn = '<button class="btn small" onclick="bukaModalBukti(\'' + item.id + '\', \'' + item.nilaiRp + '\')">📸 Unggah Bukti</button>';
+      var html = '<table><thead><tr><th>Tgl Rencana</th><th>Nama Penerima</th><th>Bantuan &amp; Nilai</th><th>Aksi</th></tr></thead><tbody>';
+      list.forEach(function (item) {
+        var btn = '<button class="btn small" onclick="bukaModalBukti(\'' + escapeHtml(item.id) + '\', \'' + escapeHtml(item.nilaiRp) + '\')">Unggah Bukti</button>';
         html += '<tr>' +
-          '<td>' + fmtDate(item.tanggalJadwal) + '</td>' +
-          '<td><b>' + item.namaPenerima + '</b><br><span style="font-size:11px;color:var(--muted)">' + (item.wilayah || '-') + '</span></td>' +
-          '<td>' + item.itemBantuan + '<br><b style="color:var(--primary)">' + formatRp(item.nilaiRp) + '</b></td>' +
+          '<td class="mono">' + fmtDate(item.tanggalJadwal) + '</td>' +
+          '<td><b>' + escapeHtml(item.namaPenerima) + '</b><br><span style="font-size:12px;color:var(--muted)">' + escapeHtml(item.wilayah || '-') + '</span></td>' +
+          '<td>' + escapeHtml(item.itemBantuan) + '<br><b class="mono" style="color:var(--primary)">' + formatRp(item.nilaiRp) + '</b></td>' +
           '<td>' + btn + '</td>' +
         '</tr>';
       });
@@ -1245,16 +2818,15 @@
       wrap.innerHTML = html;
     }
 
-    // Fungsi untuk memunculkan dan menyembunyikan Pop-Up (Modal)
     function bukaModalBukti(id, nilaiAwal) {
       if (!isEditor()) {
-        toast('🔒 Hanya Superadmin/Admin yang bisa mengunggah bukti. Silakan login.');
+        toast('Hanya Superadmin/Admin yang bisa mengunggah bukti. Silakan login.');
         promptLogin();
         return;
       }
       document.getElementById('bk_id').value = id;
       document.getElementById('bk_tanggal').value = new Date().toISOString().split('T')[0];
-      document.getElementById('bk_nilai').value = nilaiAwal; // <-- Otomatis mengisi nominal target
+      document.getElementById('bk_nilai').value = nilaiAwal;
       document.getElementById('modalBukti').style.display = 'block';
       document.getElementById('modalOverlay').style.display = 'block';
     }
@@ -1265,127 +2837,136 @@
       document.getElementById('formBukti').reset();
     }
 
-    // ====== FUNGSI BARU: SISTEM KEAMANAN PIN ======
-    var currentUser = null; // {username, nama, role, canEdit} - null berarti belum login (mode hanya-lihat)
+    // ====== SISTEM KEAMANAN LOGIN ======
+    var currentUser = null;
 
     function initLoginSystem() {
-      // Tambah aturan CSS langsung dari Javascript untuk mengunci form dan tombol aksi
       var style = document.createElement('style');
-      style.innerHTML = `
-        .app-locked form .actions,
-        .app-locked .actions.no-print,
-        .app-locked button[onclick^="bukaModalBukti"] {
-            display: none !important;
-        }
-        .app-locked input:not(#loginUsername):not(#loginPassword), .app-locked select, .app-locked textarea {
-            pointer-events: none;
-            background-color: #f1f5f9;
-            color: #94a3b8;
-        }
-        #userBadge {
-            display: none; align-items: center; gap: 8px; background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 5px 6px 5px 12px;
-            font-size: 12.5px; color: white; white-space: nowrap;
-        }
-        #userBadge b { font-weight: 700; }
-        #userBadge .role-tag {
-            font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px;
-            border-radius: 999px; background: rgba(255,255,255,0.25);
-        }
-        #userBadge .role-tag.viewer { background: rgba(0,0,0,0.2); }
-        #logoutBtn {
-            background: rgba(255,255,255,0.18); border: none; color: white; border-radius: 5px;
-            padding: 5px 9px; font-size: 12px; cursor: pointer;
-        }
-        #logoutBtn:hover { background: rgba(255,255,255,0.32); }
-        /* CSS Tambahan untuk Pop-up Login Profesional */
-        #customLoginOverlay {
-            display: none; position: fixed; inset: 0; background: #f4f6fb; /* Background solid menutupi dashboard */
-            z-index: 100000; justify-content: center; align-items: center;
-        }
-        #customLoginBox {
-            background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 340px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;
-        }
-        #customLoginBox h3 { margin: 0 0 10px; color: #1e293b; font-size: 18px; }
-        #customLoginBox p { margin: 0 0 16px; color: #64748b; font-size: 13px; line-height: 1.4; }
-        
-        /* Modifikasi CSS untuk input dan tombol lihat password */
-        #loginUsername, #loginPassword {
-            width: 100%; padding: 11px 12px; border: 2px solid #e2e8f0; border-radius: 8px;
-            font-size: 14px; outline: none; text-align: left; box-sizing: border-box;
-        }
-        #loginUsername { margin-bottom: 10px; }
-        .password-container { position: relative; width: 100%; margin-bottom: 10px; }
-        #loginPassword { padding-right: 40px; /* Memberi ruang agar teks tidak tertutup ikon mata */ }
-        .toggle-password-btn {
-            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer; font-size: 16px;
-            display: flex; align-items: center; justify-content: center; padding: 4px;
-        }
-        
-        #loginUsername:focus, #loginPassword:focus { border-color: #2563eb; }
-        .login-actions { display: flex; gap: 10px; margin-top: 6px; }
-        .login-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .login-btn-submit { background: #2563eb; color: white; width: 100%; }
-        .login-hint { margin-top: 12px !important; font-size: 11px !important; color: #94a3b8 !important; }
-      `;
+      style.innerHTML = [
+        '.app-locked form .actions,',
+        '.app-locked .actions.no-print,',
+        '.app-locked button[onclick^="bukaModalBukti"] {',
+        '  display: none !important;',
+        '}',
+        '.app-locked input:not(#loginUsername):not(#loginPassword):not(#dashboardSearchInput):not(#searchPenerima), .app-locked select, .app-locked textarea {',
+        '  pointer-events: none;',
+        '  background-color: #f1f5f9;',
+        '  color: #94a3b8;',
+        '}',
+        '#userBadge {',
+        '  display: none; align-items: center; gap: 10px;',
+        '  background: var(--surface-muted); border: 1px solid var(--border);',
+        '  border-radius: 8px; padding: 4px 6px 4px 12px;',
+        '  font-size: 12.5px; color: var(--text); white-space: nowrap; flex-shrink: 0;',
+        '}',
+        '#userBadge b { font-weight: 600; color: var(--text); }',
+        '#userBadge .role-tag {',
+        '  font-size: 11px; font-weight: 600; color: var(--primary); margin-left: 4px;',
+        '}',
+        '#userBadge .role-tag.viewer { color: var(--muted); }',
+        '#logoutBtn {',
+        '  background: var(--card); border: 1px solid var(--border); color: var(--text-secondary);',
+        '  border-radius: 6px; padding: 4px 10px; font-family: inherit; font-size: 12px; font-weight: 600;',
+        '  cursor: pointer; transition: background-color 150ms, color 150ms;',
+        '}',
+        '#logoutBtn:hover { background: var(--red-soft); color: var(--red); border-color: #fecaca; }',
+        '#customLoginOverlay {',
+        '  display: none; position: fixed; inset: 0; background: #f8fafc;',
+        '  z-index: 100000; justify-content: center; align-items: center; padding: 20px;',
+        '}',
+        '#customLoginBox {',
+        '  background: #ffffff; padding: 32px 28px; border-radius: 12px; width: 100%; max-width: 380px;',
+        '  border: 1px solid #e2e8f0; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08); text-align: left;',
+        '}',
+        '.login-brand { font-size: 12px; font-weight: 700; color: #1d4ed8; margin-bottom: 6px; }',
+        '#customLoginBox h3 { margin: 0 0 6px; color: #0f172a; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }',
+        '#customLoginBox .login-sub { margin: 0 0 20px; color: #64748b; font-size: 13px; line-height: 1.5; }',
+        '.login-field-label { display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin: 0 0 6px; }',
+        '#loginUsername, #loginPassword {',
+        '  width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;',
+        '  font-family: inherit; font-size: 14px; outline: none; text-align: left; box-sizing: border-box;',
+        '  background: #ffffff; color: #0f172a;',
+        '}',
+        '#loginUsername { margin-bottom: 14px; }',
+        '.password-container { position: relative; width: 100%; margin-bottom: 18px; }',
+        '#loginPassword { padding-right: 42px; }',
+        '.toggle-password-btn {',
+        '  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);',
+        '  background: none; border: none; cursor: pointer; color: #64748b;',
+        '  display: flex; align-items: center; justify-content: center; padding: 6px;',
+        '}',
+        '.toggle-password-btn:hover { color: #0f172a; }',
+        '#loginUsername:focus, #loginPassword:focus { border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12); }',
+        '.login-actions { display: flex; gap: 10px; }',
+        '.login-btn-submit {',
+        '  width: 100%; padding: 11px 16px; border: none; border-radius: 8px;',
+        '  background: #1d4ed8; color: white; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;',
+        '}',
+        '.login-btn-submit:hover { background: #1e3a8a; }',
+        '.login-hint { margin: 16px 0 0; font-size: 12px; color: #64748b; text-align: center; line-height: 1.45; }'
+      ].join('\n');
       document.head.appendChild(style);
-      
-      // HTML Tambahan untuk Pop-up Login Profesional
-      var modalHtml = `
-        <div id="customLoginOverlay">
-          <div id="customLoginBox">
-            <h3>Login Sistem</h3>
-            <p>Silakan masuk menggunakan akun Anda untuk mengakses sistem YASSA.</p>
-            <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
-            <div class="password-container">
-              <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-              <button type="button" id="togglePasswordBtn" class="toggle-password-btn" title="Tampilkan Password">👁️</button>
-            </div>
-            <div class="login-actions">
-              <button class="login-btn-submit" onclick="submitLogin()" id="loginBtn">Masuk</button>
-            </div>
-            <p class="login-hint">Butuh akun? Hubungi Superadmin untuk didaftarkan di sheet "Akun".</p>
-          </div>
-        </div>
-      `;
+
+      var modalHtml = '' +
+        '<div id="customLoginOverlay">' +
+          '<div id="customLoginBox">' +
+            '<div class="login-brand">Yayasan Salam Satu Aspal</div>' +
+            '<h3>Masuk ke Sistem</h3>' +
+            '<p class="login-sub">Gunakan akun terdaftar untuk mengelola program bantuan dan laporan pertanggungjawaban.</p>' +
+            '<label class="login-field-label" for="loginUsername">Username</label>' +
+            '<input type="text" id="loginUsername" placeholder="Masukkan username" autocomplete="username">' +
+            '<label class="login-field-label" for="loginPassword">Password</label>' +
+            '<div class="password-container">' +
+              '<input type="password" id="loginPassword" placeholder="Masukkan password" autocomplete="current-password">' +
+              '<button type="button" id="togglePasswordBtn" class="toggle-password-btn" title="Tampilkan Password" aria-label="Tampilkan Password">' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>' +
+              '</button>' +
+            '</div>' +
+            '<div class="login-actions">' +
+              '<button class="login-btn-submit" onclick="submitLogin()" id="loginBtn">Masuk</button>' +
+            '</div>' +
+            '<p class="login-hint">Butuh akun? Hubungi Superadmin untuk didaftarkan di sheet "Akun".</p>' +
+          '</div>' +
+        '</div>';
       document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-      // Logika Javascript untuk tombol lihat password (Debugging siap)
-      document.getElementById('togglePasswordBtn').addEventListener('click', function(e) {
-          e.preventDefault(); // Mencegah form tersubmit tak sengaja
-          var passInput = document.getElementById('loginPassword');
-          if (passInput.type === 'password') {
-              passInput.type = 'text';
-              this.innerHTML = '🙈'; // Ikon mata tertutup
-              this.title = 'Sembunyikan Password';
-              console.log('[DEBUG] Mode: Tampilkan Password');
-          } else {
-              passInput.type = 'password';
-              this.innerHTML = '👁️'; // Ikon mata terbuka
-              this.title = 'Tampilkan Password';
-              console.log('[DEBUG] Mode: Sembunyikan Password');
-          }
+      var eyeOpenSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+      var eyeOffSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+
+      document.getElementById('togglePasswordBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        var passInput = document.getElementById('loginPassword');
+        if (passInput.type === 'password') {
+          passInput.type = 'text';
+          this.innerHTML = eyeOffSvg;
+          this.title = 'Sembunyikan Password';
+        } else {
+          passInput.type = 'password';
+          this.innerHTML = eyeOpenSvg;
+          this.title = 'Tampilkan Password';
+        }
       });
 
-      // Pasang gembok saat halaman pertama kali dibuka
+      // Izinkan tekan Enter di kolom password untuk langsung login
+      document.getElementById('loginPassword').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitLogin();
+        }
+      });
+
       document.body.classList.add('app-locked');
 
-      // Buat badge user (nama + role) + tombol logout, tersembunyi sampai login berhasil
       var varUserBadge = document.createElement('div');
       varUserBadge.id = 'userBadge';
       varUserBadge.innerHTML = '<span><b id="userBadgeNama"></b> <span class="role-tag" id="userBadgeRole"></span></span><button id="logoutBtn" onclick="logout()">Keluar</button>';
 
       var header = document.querySelector('header');
-      header.style.justifyContent = 'space-between';
       header.appendChild(varUserBadge);
 
-      // Coba pulihkan sesi login sebelumnya (tersimpan di browser ini saja)
       restoreSession();
     }
 
-    // Membuka Pop-up Login
     function promptLogin() {
       if (currentUser) {
         toast('Anda sudah login sebagai ' + currentUser.nama + '.');
@@ -1395,45 +2976,41 @@
       document.getElementById('customLoginOverlay').style.display = 'flex';
       document.getElementById('loginUsername').value = '';
       document.getElementById('loginPassword').value = '';
-      setTimeout(function() { document.getElementById('loginUsername').focus(); }, 100);
+      setTimeout(function () { document.getElementById('loginUsername').focus(); }, 100);
     }
 
-    // Menutup Pop-up Login
     function closeLoginModal() {
       document.getElementById('customLoginOverlay').style.display = 'none';
     }
 
-    // Mengirim Username/Password dari Pop-up Login ke Server
     function submitLogin() {
       var username = document.getElementById('loginUsername').value.trim();
       var password = document.getElementById('loginPassword').value;
-      
-      // Angkat notifikasi error ke lapisan paling depan (di atas modal login)
-      document.getElementById('toast').style.zIndex = '999999'; 
-      
+
+      document.getElementById('toast').style.zIndex = '999999';
+
       if (!username || !password) {
-        toast('❌ Username & Password wajib diisi');
+        toast('Username & Password wajib diisi.');
         return;
       }
 
       var btn = document.getElementById('loginBtn');
-      btn.innerHTML = '⏳ Mengecek...';
-      btn.disabled = true;       // Kunci tombol agar tidak terklik berkali-kali saat loading
-      btn.style.opacity = '0.7'; // Redupkan tombol sebagai penanda visual
+      btn.innerHTML = 'Memverifikasi...';
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
 
-      // Cek Username/Password ke server backend (sheet "Akun")
-      callBackend('login', { username: username, password: password }).then(function(res) {
+      callBackend('login', { username: username, password: password }).then(function (res) {
         if (res.success) {
           closeLoginModal();
           applyLoginState(res.data, true);
-          toast('✅ Login berhasil! Selamat datang, ' + res.data.nama + '.');
+          toast('Login berhasil. Selamat datang, ' + res.data.nama + '.');
         } else {
           btn.innerHTML = 'Masuk';
           btn.disabled = false;
           btn.style.opacity = '1';
           showError(res);
         }
-      }).catch(function(err) {
+      }).catch(function (err) {
         btn.innerHTML = 'Masuk';
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -1441,44 +3018,37 @@
       });
     }
 
-    // Menerapkan status login ke tampilan (dipanggil saat login sukses ATAU saat sesi dipulihkan)
     function applyLoginState(user, persist) {
       currentUser = user;
 
       if (persist) {
-        try { sessionStorage.setItem('yassaSession', JSON.stringify(user)); } catch(e) {}
+        try { sessionStorage.setItem('yassaSession', JSON.stringify(user)); } catch (e) {}
       }
 
-      var isEditor = user.role === 'superadmin' || user.role === 'admin';
-      if (isEditor) {
+      var isEd = user.role === 'superadmin' || user.role === 'admin';
+      if (isEd) {
         document.body.classList.remove('app-locked');
       } else {
         document.body.classList.add('app-locked');
       }
 
-      // Karena login ada di modal awal, kita tidak perlu menyembunyikan tombol header lagi
       var badge = document.getElementById('userBadge');
       if (badge) {
         badge.style.display = 'flex';
         document.getElementById('userBadgeNama').textContent = user.nama;
         var roleEl = document.getElementById('userBadgeRole');
-        roleEl.textContent = isEditor ? user.role : 'Hanya Lihat';
-        roleEl.className = 'role-tag' + (isEditor ? '' : ' viewer');
+        roleEl.textContent = isEd ? '· ' + user.role : '· Hanya Lihat';
+        roleEl.className = 'role-tag' + (isEd ? '' : ' viewer');
       }
-      
-      // Menutup pop-up login jika otomatis masuk lewat SSO YASSA Hub
+
       var loginOverlay = document.getElementById('customLoginOverlay');
       if (loginOverlay) {
         loginOverlay.style.display = 'none';
       }
     }
 
-    // Memulihkan sesi login dari penyimpanan browser (kalau ada & belum ditutup tab-nya)
     function restoreSession() {
       try {
-        // SSO dari YASSA Hub. Hub menyimpan sesi di localStorage ("yassa_user"),
-        // sedangkan sessionStorage dulu yang dibaca di sini -> selalu kosong ->
-        // login manual muncul. Sekarang cek keduanya + token Hub dari URL (?hubToken=).
         var hubSaved = null;
         try { hubSaved = localStorage.getItem('yassa_user'); } catch (e) {}
         if (!hubSaved) { try { hubSaved = sessionStorage.getItem('yassa_user'); } catch (e) {} }
@@ -1488,7 +3058,6 @@
         var saved = null;
         try { saved = sessionStorage.getItem('yassaSession'); } catch (e) {}
 
-        // Sesi Hub dianggap sah hanya kalau ada token Hub (dari URL atau localStorage)
         if (hubSaved && (hubTokenUrl || hubTokenLs)) {
           var hubUser = JSON.parse(hubSaved);
           var adaptedUser = {
@@ -1502,58 +3071,54 @@
         } else {
           promptLogin();
         }
-      } catch(e) {
+      } catch (e) {
         promptLogin();
       }
     }
 
-    // Keluar dari akun (kembali terkunci di form login)
     function logout() {
       currentUser = null;
-      try { sessionStorage.removeItem('yassaSession'); } catch(e) {}
+      try { sessionStorage.removeItem('yassaSession'); } catch (e) {}
       document.body.classList.add('app-locked');
       document.getElementById('userBadge').style.display = 'none';
       toast('Anda telah keluar dari akun.');
-      
-      // Reset form login
+
       document.getElementById('loginUsername').value = '';
       document.getElementById('loginPassword').value = '';
-      document.getElementById('loginBtn').innerHTML = 'Masuk';
-      
-      promptLogin(); // Paksa munculkan modal login lagi
+      var loginBtn = document.getElementById('loginBtn');
+      loginBtn.innerHTML = 'Masuk';
+      loginBtn.disabled = false;
+      loginBtn.style.opacity = '1';
+
+      promptLogin();
     }
 
-    // Cek apakah user yang sedang login boleh mengedit & mencetak
     function isEditor() {
       return !!currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'admin');
     }
 
-function toggleStatus(programId) {
-      // Cek apakah user sudah login dengan role yang boleh mengedit
+    function toggleStatus(programId) {
       if (!isEditor()) {
-        toast('🔒 Anda harus login sebagai Superadmin/Admin terlebih dahulu!');
-        promptLogin(); // Memunculkan jendela login otomatis
-        return;         // Hentikan proses ke bawah agar status tidak berubah
-      }
-
-      // Pastikan aplikasi tidak sedang proses memuat hal lain
-      if (isSubmitting) {
-        toast('⏳ Mohon tunggu, proses lain sedang berjalan...');
+        toast('Anda harus login sebagai Superadmin/Admin terlebih dahulu.');
+        promptLogin();
         return;
       }
-      
-      // Tanya konfirmasi agar tidak terklik secara tidak sengaja
+
+      if (isSubmitting) {
+        toast('Mohon tunggu, proses lain sedang berjalan...');
+        return;
+      }
+
       var konfirmasi = confirm('Yakin ingin mengubah status program ini menjadi Aktif/Tidak Aktif?');
       if (!konfirmasi) return;
 
       showLoading('Mengubah status program...');
       isSubmitting = true;
 
-      // Menghubungi server Apps Script
       callBackend('toggleProgramStatus', { programId: programId }).then(function (res) {
         if (res.success) {
-          toast('✅ Status berhasil diubah!');
-          loadDashboard(); // Memuat ulang kartu-kartu dashboard
+          toast('Status program berhasil diubah.');
+          loadDashboard();
         } else {
           showError(res);
         }
@@ -1564,21 +3129,17 @@ function toggleStatus(programId) {
         isSubmitting = false;
       });
     }
- // ---------- INIT START ----------
-    // Kalau dibuka lewat iframe Hub: sembunyiin header & nav bawaan app ini
-    // (biar gak dobel sama header/menu Hub yang udah ngebungkus di luar),
-    // dan langsung pindah ke tab yang diminta Hub (bukan selalu Dashboard).
+
+    // ---------- INIT START ----------
     if (IS_EMBEDDED) {
+      var elShell = document.getElementById('topbarShell');
       var elHeader = document.getElementById('appHeader');
       var elNav = document.getElementById('nav');
+      if (elShell) elShell.style.display = 'none';
       if (elHeader) elHeader.style.display = 'none';
       if (elNav) elNav.style.display = 'none';
     }
 
-    // Terima perintah pindah tab dari YASSA Hub lewat postMessage, dipakai
-    // pas app ini udah kebuka di iframe Hub (jadi ganti menu gak perlu
-    // reload/muat ulang halaman dari nol). Cuma nerima kalau originnya dari
-    // Hub yang sah, dan cuma sinyal ganti tampilan, bukan data rahasia.
     window.addEventListener('message', function (e) {
       if (ALLOWED_HUB_ORIGINS.indexOf(e.origin) === -1) return;
       var msg = e.data;
@@ -1589,7 +3150,12 @@ function toggleStatus(programId) {
     });
 
     initLoginSystem();
-    try { if (EMBED_PARAMS.get('hubToken')) { EMBED_PARAMS.delete('hubToken'); history.replaceState(null, '', location.pathname + '?' + EMBED_PARAMS.toString()); } } catch (e) {}
+    try {
+      if (EMBED_PARAMS.get('hubToken')) {
+        EMBED_PARAMS.delete('hubToken');
+        history.replaceState(null, '', location.pathname + '?' + EMBED_PARAMS.toString());
+      }
+    } catch (e) {}
     showView(INITIAL_TAB);
   </script>
 </body>
