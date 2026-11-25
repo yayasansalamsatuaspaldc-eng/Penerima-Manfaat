@@ -22,7 +22,7 @@
   <script>
     (function () {
       try {
-        var saved = localStorage.getItem('yassa_theme');
+        var saved = localStorage.getItem('yassa_theme'); try { var qt = new URLSearchParams(window.location.search).get('theme'); if (qt === 'light' || qt === 'dark') { saved = qt; localStorage.setItem('yassa_theme', qt); } } catch (e2) {}
         var theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
         if (theme === 'dark') {
           document.documentElement.classList.add('dark');
@@ -3207,7 +3207,7 @@
     window.addEventListener('message', function (e) {
       if (ALLOWED_HUB_ORIGINS.indexOf(e.origin) === -1) return;
       var msg = e.data;
-      if (!msg || msg.type !== 'YASSA_HUB_NAVIGATE') return;
+      if (msg && msg.type === 'YASSA_HUB_THEME' && (msg.theme === 'light' || msg.theme === 'dark')) { setTheme(msg.theme); return; } if (!msg || msg.type !== 'YASSA_HUB_NAVIGATE') return;
       if (VALID_TABS.indexOf(msg.tab) !== -1) {
         showView(msg.tab);
       }
