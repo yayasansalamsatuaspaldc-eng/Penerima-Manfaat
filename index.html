@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,50 +10,98 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
 
-  <!-- Typography: Plus Jakarta Sans (Display & Body) + JetBrains Mono (Tabular Numerals & Codes) -->
+  <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Library html2pdf untuk cetak PDF rapi ke Drive -->
+  <!-- Library html2pdf & D3.js v7 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Library D3.js v7 untuk grafik tren donasi bulanan -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('yassa_theme');
+        var theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <style>
     :root {
-      /* 60% Textured Archival Linen & Cool Slate Desk */
-      --bg: #dce2ea;
-      /* 30% Tactile Cardstock & Brushed Aluminum Surfaces */
-      --card: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
-      --card-solid: #ffffff;
-      --surface-muted: #e7ecf2;
-      --surface-hover: #eff3f8;
-      --border: #bac5d3;
-      --border-strong: #97a6b9;
-      /* Typography & Ink */
-      --text: #152033;
-      --text-secondary: #2e3d54;
-      --muted: #5a6a80;
-      /* 10% Cobalt Sapphire Bevel Accent */
-      --primary: #1d4ed8;
-      --primary-dark: #1e3a8a;
-      --primary-ink: #ffffff;
-      --primary-soft: #e0ebff;
-      /* Semantic Status */
-      --green: #15803d;
-      --green-soft: #dcfce7;
+      /* Aksen Utama: Hijau Zamrud */
+      --yassa-green: #10b981;
+      --yassa-green-hover: #059669;
+      --yassa-green-text: #047857;
+      --yassa-green-soft: rgba(16, 185, 129, 0.12);
+      --yassa-green-border: rgba(16, 185, 129, 0.30);
+
+      /* Mode Terang (Latar Lembut + Kartu Putih) */
+      --bg: #f4f7fb;
+      --surface-header: rgba(255, 255, 255, 0.88);
+      --card: #ffffff;
+      --card-muted: #f8fafc;
+      --surface-soft: #f1f5f9;
+      --surface-hover: #ecfdf5;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+
+      /* Teks */
+      --text: #0f172a;
+      --text-secondary: #334155;
+      --muted: #64748b;
+      --btn-primary-ink: #ffffff;
+
+      /* Semantik */
+      --blue: #0284c7;
       --amber: #b45309;
-      --amber-soft: #fef3c7;
-      --red: #b91c1c;
-      --red-soft: #fee2e2;
-      /* Tactile Shadows & Radii */
-      --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 12px rgba(15, 23, 42, 0.09), 0 1px 2px rgba(15, 23, 42, 0.08);
-      --shadow-inset: inset 0 2px 4px rgba(15, 23, 42, 0.12), 0 1px 0 rgba(255, 255, 255, 0.85);
-      --radius-lg: 12px;
-      --radius-md: 8px;
-      --radius-sm: 6px;
+      --red: #dc2626;
+      --red-soft: rgba(220, 38, 38, 0.10);
+
+      /* Bayangan & Radius (rounded-3xl = 24px) */
+      --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.04);
+      --shadow-card-hover: 0 6px 20px rgba(15, 23, 42, 0.08);
+      --radius-3xl: 24px;
+      --radius-2xl: 16px;
+      --radius-xl: 12px;
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html.dark {
+      /* Mode Gelap (Biru-Navy Sangat Gelap) */
+      --yassa-green: #10b981;
+      --yassa-green-hover: #34d399;
+      --yassa-green-text: #10b981;
+      --yassa-green-soft: rgba(16, 185, 129, 0.14);
+      --yassa-green-border: rgba(16, 185, 129, 0.32);
+
+      --bg: #090D16;
+      --surface-header: rgba(11, 16, 27, 0.90);
+      --card: #111827;
+      --card-muted: #0B101B;
+      --surface-soft: #0B101B;
+      --surface-hover: rgba(16, 185, 129, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+
+      --text: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --muted: #94a3b8;
+      --btn-primary-ink: #042f2e;
+
+      --blue: #38bdf8;
+      --amber: #fbbf24;
+      --red: #f87171;
+      --red-soft: rgba(248, 113, 113, 0.14);
+
+      --shadow-card: none;
+      --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.35);
     }
 
     *, *::before, *::after {
@@ -66,19 +114,19 @@
       color-scheme: light;
     }
 
+    html.dark {
+      color-scheme: dark;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg);
-      background-image:
-        radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 255, 255, 0.45), transparent 70%),
-        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 3px),
-        repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.025) 0px, rgba(15, 23, 42, 0.025) 1px, transparent 1px, transparent 3px);
-      background-attachment: fixed;
       color: var(--text);
       margin: 0;
       padding: 0;
       font-size: 14px;
       line-height: 1.55;
+      transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out);
     }
 
     .mono,
@@ -87,11 +135,12 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* ====== TOP BAR (Brushed Aluminum Console Header) ====== */
+    /* ====== TOP BAR ====== */
     .topbar-shell {
-      background: linear-gradient(180deg, #f8fafc 0%, #e6ebf2 52%, #d5dde7 100%);
-      border-bottom: 1px solid #a2b0c2;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 3px 10px rgba(15, 23, 42, 0.12);
+      background: var(--surface-header);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 30;
@@ -105,7 +154,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 24px;
+      gap: 28px;
     }
 
     .brand-zone {
@@ -120,30 +169,24 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: var(--radius-md);
-      border: 1px solid #aab6c6;
-      background: linear-gradient(180deg, #ffffff 0%, #e4e9f0 100%);
-      box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(15, 23, 42, 0.14);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
       color: var(--text-secondary);
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 100ms var(--ease-out), filter 150ms var(--ease-out), color 150ms var(--ease-out);
+      transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out), background 150ms var(--ease-out);
     }
 
     .back-portal-btn:hover {
-      background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
       color: var(--text);
-    }
-
-    .back-portal-btn:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 3px rgba(15, 23, 42, 0.18);
+      border-color: var(--border-strong);
     }
 
     .back-portal-btn:focus-visible {
-      outline: 2px solid var(--primary);
+      outline: 2px solid var(--yassa-green);
       outline-offset: 2px;
     }
 
@@ -153,7 +196,6 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--text);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -161,9 +203,8 @@
     nav#nav {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 22px;
       height: 100%;
-      padding: 10px 0;
       overflow-x: auto;
       scrollbar-width: none;
     }
@@ -173,48 +214,99 @@
     }
 
     nav#nav button {
-      border: 1px solid transparent;
+      position: relative;
+      border: none;
       background: transparent;
       height: 100%;
-      padding: 0 14px;
-      border-radius: var(--radius-md);
+      padding: 0 2px;
       font-family: inherit;
       font-size: 13.5px;
       font-weight: 600;
       cursor: pointer;
       color: var(--muted);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
       white-space: nowrap;
       flex-shrink: 0;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      transition: color 150ms var(--ease-out), background 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+      gap: 8px;
+      transition: color 150ms var(--ease-out);
     }
 
     nav#nav button:hover {
       color: var(--text);
-      background: rgba(255, 255, 255, 0.45);
     }
 
     nav#nav button.active {
-      color: var(--primary-dark);
-      background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
-      border-color: #aab7c8;
-      box-shadow: inset 0 1px 0 #ffffff, 0 1px 3px rgba(15, 23, 42, 0.14);
-      text-shadow: 0 1px 0 #ffffff;
+      color: var(--yassa-green-text);
+    }
+
+    nav#nav button.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--yassa-green);
     }
 
     nav#nav button:focus-visible {
-      outline: 2px solid var(--primary);
+      outline: 2px solid var(--yassa-green);
       outline-offset: -2px;
     }
 
     .nav-icon {
-      width: 15px;
-      height: 15px;
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
-      opacity: 0.88;
+    }
+
+    /* ====== THEME SWITCHER ====== */
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      flex-shrink: 0;
+    }
+
+    .theme-toggle button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+    }
+
+    .theme-toggle button:hover {
+      color: var(--text);
+    }
+
+    .theme-toggle button.active-light {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: var(--border);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+
+    .theme-toggle button.active-dark {
+      background: #111827;
+      color: var(--yassa-green);
+      border-color: var(--yassa-green-border);
     }
 
     /* ====== MAIN VIEWPORT ====== */
@@ -245,12 +337,10 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .view.active {
-        animation: none;
-      }
+      .view.active { animation: none; }
     }
 
-    /* ====== PAGE HEADER & SECTION INTRO ====== */
+    /* ====== PAGE HEADER ====== */
     .page-intro {
       display: flex;
       flex-wrap: wrap;
@@ -258,9 +348,8 @@
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 24px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid #c1ccd9;
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
     }
 
     .page-intro h2 {
@@ -269,7 +358,6 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--text);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
       text-wrap: balance;
     }
 
@@ -279,21 +367,27 @@
       color: var(--muted);
     }
 
-    /* ====== CARDS & GRIDS (Tactile Raised Ivory Cardstock) ====== */
+    .page-intro-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ====== CARDS (rounded-3xl + Thin Hairline Border) ====== */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
+      border-radius: var(--radius-3xl);
+      padding: 26px;
       margin-bottom: 20px;
       box-shadow: var(--shadow-card);
     }
 
     .card-header {
-      margin-bottom: 18px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid #d5dde7;
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
     }
 
     .card-header h3 {
@@ -329,14 +423,14 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-3xl);
       box-shadow: var(--shadow-card);
       margin-bottom: 20px;
       overflow: hidden;
     }
 
     .kpi-cell {
-      padding: 18px 20px;
+      padding: 22px 24px;
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
@@ -365,8 +459,8 @@
       text-overflow: ellipsis;
     }
 
-    .kpi-value.green { color: var(--green); }
-    .kpi-value.primary { color: var(--primary); }
+    .kpi-value.green { color: var(--yassa-green-text); }
+    .kpi-value.blue { color: var(--blue); }
 
     .kpi-sub {
       font-size: 12px;
@@ -375,7 +469,7 @@
 
     /* ====== D3 MONTHLY DONATION TREND CHART ====== */
     .chart-card {
-      padding: 20px 24px 18px;
+      padding: 24px;
       margin-bottom: 20px;
     }
 
@@ -417,15 +511,18 @@
       font-weight: 600;
     }
 
+    .chart-meta b.emerald {
+      color: var(--yassa-green-text);
+    }
+
     .chart-body {
       position: relative;
       width: 100%;
-      height: 248px;
-      background: linear-gradient(180deg, #edf2f7 0%, #f8fafc 100%);
-      border: 1px solid #bcc7d5;
-      border-radius: var(--radius-md);
-      padding: 8px 6px 4px;
-      box-shadow: var(--shadow-inset);
+      height: 252px;
+      background: var(--card-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      padding: 10px 8px 6px;
     }
 
     .chart-body svg {
@@ -451,14 +548,14 @@
     .d3-tooltip {
       position: absolute;
       pointer-events: none;
-      background: linear-gradient(180deg, #273449 0%, #0f172a 100%);
-      border: 1px solid #475569;
+      background: #0B101B;
+      border: 1px solid var(--yassa-green-border);
       color: #f8fafc;
-      padding: 9px 12px;
-      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      border-radius: 14px;
       font-size: 12px;
       line-height: 1.45;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 10px 24px rgba(15, 23, 42, 0.36);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
       opacity: 0;
       transform: translate(-50%, -8px);
       transition: opacity 120ms var(--ease-out), transform 120ms var(--ease-out);
@@ -483,16 +580,16 @@
       font-variant-numeric: tabular-nums;
       font-weight: 700;
       font-size: 13.5px;
-      color: #60a5fa;
+      color: var(--yassa-green);
     }
 
     .d3-tooltip .tt-count {
       font-size: 11.5px;
-      color: #cbd5e1;
+      color: #94a3b8;
       margin-top: 2px;
     }
 
-    /* ====== FILTER TOOLBAR (Recessed Groove & Raised Keycaps) ====== */
+    /* ====== FILTER TOOLBAR ====== */
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -510,23 +607,22 @@
 
     .search-box svg {
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      width: 15px;
-      height: 15px;
+      width: 16px;
+      height: 16px;
       color: var(--muted);
       pointer-events: none;
     }
 
     .search-box input {
       width: 100%;
-      height: 38px;
-      padding: 0 12px 0 36px;
-      border: 1px solid #aebbc9;
-      border-radius: var(--radius-md);
-      background: linear-gradient(180deg, #edf2f7 0%, #ffffff 100%);
-      box-shadow: var(--shadow-inset);
+      height: 40px;
+      padding: 0 14px 0 40px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      background: var(--card);
       font-family: inherit;
       font-size: 13.5px;
       color: var(--text);
@@ -539,44 +635,44 @@
     }
 
     .search-box input:focus {
-      border-color: var(--primary);
-      background: #ffffff;
-      box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.1), 0 0 0 3px rgba(29, 78, 216, 0.18);
+      border-color: var(--yassa-green);
+      box-shadow: 0 0 0 3px var(--yassa-green-soft);
     }
 
     .segmented {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
       padding: 4px;
-      background: #d5dde7;
-      border: 1px solid #b0bccb;
-      border-radius: var(--radius-md);
-      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.14), 0 1px 0 rgba(255, 255, 255, 0.85);
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
     }
 
     .segmented button {
       border: 1px solid transparent;
       background: transparent;
       padding: 6px 12px;
-      border-radius: 5px;
+      border-radius: 12px;
       font-family: inherit;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--muted);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: background 150ms var(--ease-out), color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+      transition: background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+    }
+
+    .segmented button:hover {
+      color: var(--text);
     }
 
     .segmented button.active {
-      background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
-      color: var(--primary-dark);
-      border-color: #aebbc9;
-      box-shadow: inset 0 1px 0 #ffffff, 0 1px 3px rgba(15, 23, 42, 0.16);
-      text-shadow: 0 1px 0 #ffffff;
+      background: var(--card);
+      color: var(--yassa-green-text);
+      border-color: var(--yassa-green-border);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     }
 
     /* ====== PROGRAM CARDS ====== */
@@ -584,10 +680,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 24px 0 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #c1ccd9;
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+      margin: 26px 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
     }
 
     .section-group-title:first-child {
@@ -599,7 +694,6 @@
       font-size: 14px;
       font-weight: 700;
       color: var(--text);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
     }
 
     .section-group-title span {
@@ -614,18 +708,19 @@
       flex-direction: column;
       justify-content: space-between;
       margin-bottom: 0;
-      padding: 20px;
-      transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), border-color 150ms var(--ease-out);
+      padding: 24px;
+      border-radius: var(--radius-3xl);
+      transition: box-shadow 150ms var(--ease-out), border-color 150ms var(--ease-out);
     }
 
     .prog-card:hover {
-      border-color: var(--border-strong);
-      box-shadow: inset 0 1px 0 #ffffff, 0 8px 18px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.08);
+      border-color: var(--yassa-green-border);
+      box-shadow: var(--shadow-card-hover);
     }
 
     .prog-card.inactive-card {
-      background: linear-gradient(180deg, #f3f5f8 0%, #e9edf3 100%);
-      opacity: 0.88;
+      background: var(--card-muted);
+      opacity: 0.85;
     }
 
     .prog-meta-line {
@@ -634,11 +729,11 @@
       gap: 6px;
       font-size: 12px;
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .status-text {
-      color: var(--green);
+      color: var(--yassa-green-text);
     }
 
     .status-text.selesai {
@@ -657,7 +752,7 @@
     .prog-card .desc {
       color: var(--muted);
       font-size: 13px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       line-height: 1.5;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -666,9 +761,8 @@
     }
 
     .ledger-rows {
-      border-top: 1px solid #d7e0ea;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
       margin-bottom: 12px;
     }
 
@@ -677,7 +771,7 @@
       justify-content: space-between;
       align-items: baseline;
       font-size: 13px;
-      padding: 4px 0;
+      padding: 3.5px 0;
     }
 
     .row-num span:first-child {
@@ -692,20 +786,19 @@
     }
 
     .bar-wrap {
-      background: #d7e0ea;
-      border: 1px solid #b6c2d1;
-      box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.22), 0 1px 0 #ffffff;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
       border-radius: 999px;
-      height: 10px;
+      height: 8px;
       overflow: hidden;
-      margin: 6px 0 6px;
+      margin: 6px 0;
     }
 
     .bar-fill {
       height: 100%;
-      background: linear-gradient(180deg, #34d399 0%, #16a34a 55%, #15803d 100%);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      background: var(--yassa-green);
       border-radius: 999px;
+      transition: width 300ms var(--ease-out);
     }
 
     .prog-target-row {
@@ -717,11 +810,11 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* ====== TACTILE BEVELED BUTTONS ====== */
+    /* ====== BUTTONS ====== */
     .actions {
       display: flex;
-      gap: 8px;
-      margin-top: 16px;
+      gap: 10px;
+      margin-top: 18px;
     }
 
     button.btn {
@@ -729,71 +822,48 @@
       align-items: center;
       justify-content: center;
       gap: 7px;
-      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
-      color: #ffffff;
-      border: 1px solid #1e40af;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(15, 23, 42, 0.22), 0 1px 1px rgba(15, 23, 42, 0.12);
-      text-shadow: 0 -1px 0 rgba(15, 23, 42, 0.32);
-      border-radius: var(--radius-md);
-      padding: 9px 18px;
+      background: var(--yassa-green);
+      color: var(--btn-primary-ink);
+      border: 1px solid transparent;
+      border-radius: var(--radius-2xl);
+      padding: 10px 18px;
       font-family: inherit;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: transform 90ms var(--ease-out), filter 150ms var(--ease-out), box-shadow 150ms var(--ease-out), opacity 150ms var(--ease-out);
+      transition: background 150ms var(--ease-out), transform 100ms var(--ease-out), opacity 150ms var(--ease-out);
     }
 
     button.btn:hover {
-      background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+      background: var(--yassa-green-hover);
     }
 
     button.btn:active {
       transform: translateY(1px);
-      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.36);
     }
 
     button.btn:focus-visible {
-      outline: 2px solid var(--primary);
+      outline: 2px solid var(--yassa-green);
       outline-offset: 2px;
     }
 
     button.btn.secondary {
-      background: linear-gradient(180deg, #ffffff 0%, #e7ecf2 100%);
+      background: var(--surface-soft);
       color: var(--text-secondary);
-      border-color: #aab6c6;
-      box-shadow: inset 0 1px 0 #ffffff, 0 1px 3px rgba(15, 23, 42, 0.12);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+      border-color: var(--border);
       font-weight: 600;
     }
 
     button.btn.secondary:hover {
-      background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
-      border-color: #8f9fb3;
+      border-color: var(--border-strong);
       color: var(--text);
     }
 
-    button.btn.secondary:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.16);
-    }
-
-    button.btn.emerald {
-      background: linear-gradient(180deg, #22c55e 0%, #16a34a 52%, #15803d 100%);
-      border-color: #166534;
-      color: #ffffff;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 2px 4px rgba(15, 23, 42, 0.22);
-      text-shadow: 0 -1px 0 rgba(5, 46, 22, 0.4);
-    }
-
-    button.btn.emerald:hover {
-      background: linear-gradient(180deg, #4ade80 0%, #22c55e 52%, #16a34a 100%);
-    }
-
     button.btn.small {
-      padding: 7px 12px;
-      font-size: 12.5px;
+      padding: 8px 14px;
+      font-size: 12px;
     }
 
     button.btn:disabled {
@@ -802,14 +872,13 @@
       transform: none;
     }
 
-    /* ====== CARVED INSET FORMS ====== */
+    /* ====== FORMS ====== */
     form label {
       display: block;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-secondary);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
-      margin: 14px 0 6px;
+      margin: 16px 0 6px;
     }
 
     form label:first-child {
@@ -820,11 +889,10 @@
     form select,
     form textarea {
       width: 100%;
-      padding: 9px 12px;
-      border: 1px solid #aebbc9;
-      border-radius: var(--radius-md);
-      background: linear-gradient(180deg, #eef2f7 0%, #ffffff 42%);
-      box-shadow: var(--shadow-inset);
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      background: var(--surface-soft);
       font-family: inherit;
       font-size: 13.5px;
       color: var(--text);
@@ -834,51 +902,47 @@
 
     form input::placeholder,
     form textarea::placeholder {
-      color: #7c8b9e;
+      color: var(--muted);
     }
 
     form input:focus,
     form select:focus,
     form textarea:focus {
-      border-color: var(--primary);
-      background: #ffffff;
-      box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.1), 0 0 0 3px rgba(29, 78, 216, 0.18);
+      border-color: var(--yassa-green);
+      box-shadow: 0 0 0 3px var(--yassa-green-soft);
     }
 
     form textarea {
       resize: vertical;
-      min-height: 76px;
+      min-height: 80px;
     }
 
     form select option {
-      background: #ffffff;
-      color: #152033;
+      background: var(--card);
+      color: var(--text);
     }
 
     form input[type="file"] {
-      padding: 7px 10px;
-      font-size: 12.5px;
-      background: #eef2f7;
+      padding: 8px 12px;
+      font-size: 12px;
       border-style: dashed;
-      border-color: #9ba9bb;
-      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+      border-color: var(--border-strong);
       cursor: pointer;
     }
 
     .field-hint {
       font-size: 11.5px;
       color: var(--muted);
-      margin: 5px 0 0;
+      margin: 6px 0 0;
       line-height: 1.4;
     }
 
     /* ====== TABLES ====== */
     .table-container {
       overflow-x: auto;
-      border: 1px solid #b5c1d0;
-      border-radius: var(--radius-md);
-      background: #ffffff;
-      box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      background: var(--card);
     }
 
     table {
@@ -890,8 +954,8 @@
 
     th, td {
       text-align: left;
-      padding: 11px 14px;
-      border-bottom: 1px solid #dde4ed;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
       vertical-align: middle;
     }
 
@@ -900,16 +964,14 @@
     }
 
     tbody tr:hover {
-      background: #eff6ff;
+      background: var(--surface-hover);
     }
 
     th {
       color: var(--text-secondary);
-      font-weight: 700;
+      font-weight: 600;
       font-size: 12px;
-      background: linear-gradient(180deg, #f8fafc 0%, #e7ecf2 100%);
-      border-bottom: 1px solid #b5c1d0;
-      text-shadow: 0 1px 0 #ffffff;
+      background: var(--card-muted);
       white-space: nowrap;
     }
 
@@ -925,20 +987,20 @@
     .back-link {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       color: var(--text-secondary);
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
-      margin-bottom: 16px;
-      padding: 6px 10px;
-      margin-left: -10px;
-      border-radius: var(--radius-sm);
-      transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      background: var(--card);
+      transition: border-color 150ms var(--ease-out), color 150ms var(--ease-out);
     }
 
     .back-link:hover {
-      background: var(--surface-muted);
+      border-color: var(--border-strong);
       color: var(--text);
     }
 
@@ -947,15 +1009,15 @@
       position: fixed;
       bottom: 24px;
       left: 50%;
-      transform: translateX(-50%) translateY(6px);
-      background: linear-gradient(180deg, #273449 0%, #0f172a 100%);
-      border: 1px solid #475569;
+      transform: translateX(-50%) translateY(8px);
+      background: #0B101B;
+      border: 1px solid var(--yassa-green-border);
       color: #f8fafc;
-      padding: 11px 18px;
-      border-radius: var(--radius-md);
+      padding: 11px 20px;
+      border-radius: var(--radius-2xl);
       font-size: 13px;
       font-weight: 500;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 12px 28px rgba(15, 23, 42, 0.35);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
       opacity: 0;
       transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
       pointer-events: none;
@@ -982,8 +1044,8 @@
     .modern-spinner {
       width: 32px;
       height: 32px;
-      border: 3px solid #cbd5e1;
-      border-top-color: var(--primary);
+      border: 3px solid var(--border-strong);
+      border-top-color: var(--yassa-green);
       border-radius: 50%;
       animation: spin 0.75s linear infinite;
       margin-bottom: 12px;
@@ -999,8 +1061,8 @@
     .loading-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(2px);
+      background: rgba(9, 13, 22, 0.75);
+      backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -1017,8 +1079,8 @@
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      border: 3px solid rgba(255, 255, 255, 0.25);
-      border-top-color: #ffffff;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--yassa-green);
       animation: spin 0.75s linear infinite;
     }
 
@@ -1040,8 +1102,8 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(2px);
+      background: rgba(9, 13, 22, 0.72);
+      backdrop-filter: blur(4px);
       z-index: 40;
     }
 
@@ -1052,22 +1114,22 @@
       left: 50%;
       transform: translate(-50%, -50%);
       width: 92%;
-      max-width: 480px;
+      max-width: 490px;
       max-height: 88vh;
       overflow-y: auto;
       z-index: 50;
       margin: 0;
-      background: linear-gradient(180deg, #ffffff 0%, #f3f6fa 100%);
-      border: 1px solid #9aa8ba;
-      box-shadow: inset 0 1px 0 #ffffff, 0 24px 60px rgba(15, 23, 42, 0.38);
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-3xl);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
     }
 
     .upload-group-title {
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid #d5dde7;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      color: var(--primary-dark);
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--yassa-green-text);
       font-size: 13px;
       font-weight: 700;
     }
@@ -1075,74 +1137,20 @@
     .upload-stack {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-top: 6px;
+      gap: 8px;
+      margin-top: 8px;
     }
-
-    /* ====== TABEL LAPORAN PENERIMA (Handler) ====== */
-    .laporan-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11.5px;
-      margin-top: 10px;
-      table-layout: fixed;
-    }
-    .laporan-table th, .laporan-table td {
-      border: 1px solid #333;
-      padding: 6px 8px;
-      vertical-align: top;
-      text-align: left;
-    }
-    .laporan-table th {
-      background: #f1f5f9;
-      font-size: 11px;
-      text-align: center;
-    }
-    .laporan-table th.col-no, .laporan-table td.col-no {
-      text-align: center;
-      width: 18px;
-      padding-left: 2px;
-      padding-right: 2px;
-    }
-    .laporan-table th.col-bukti, .laporan-table td.col-bukti {
-      text-align: center;
-      width: 130px;
-    }
-    .laporan-table .field-line { margin: 0 0 3px; line-height: 1.35; }
-    .laporan-table .field-line:last-child { margin-bottom: 0; }
-    .laporan-table .field-line b { font-weight: 600; }
-    .laporan-table img.bukti-img {
-      width: 115px;
-      height: 115px;
-      object-fit: cover;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-    .laporan-table .no-bukti { color: #999; font-size: 10px; font-style: italic; }
 
     /* ====== TAMPILAN LPJ ON-SCREEN & CETAK PDF (KERTAS PUTIH RESMI) ====== */
     #cetakArea {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --surface-muted: #f1f5f9;
-      --surface-hover: #f8fafc;
-      --border: #cbd5e1;
-      --border-strong: #94a3b8;
-      --text: #0f172a;
-      --text-secondary: #334155;
-      --muted: #475569;
-      --primary: #1d4ed8;
-      --primary-dark: #1e3a8a;
-      --green: #15803d;
-      --amber: #b45309;
       background: #ffffff;
       color: #0f172a;
-      border: 1px solid #b4c0ce;
-      border-radius: var(--radius-lg);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-3xl);
       padding: 36px;
       max-width: 920px;
       margin: 0 auto;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 12px 36px rgba(9, 13, 22, 0.14);
     }
 
     .print-table {
@@ -1154,22 +1162,22 @@
       min-width: 0;
     }
     .print-table th, .print-table td {
-      border: 1px solid var(--border);
+      border: 1px solid #cbd5e1;
       padding: 10px 12px;
       color: #0f172a;
     }
     .print-table th {
-      background-color: var(--surface-muted);
+      background-color: #f1f5f9;
       font-weight: 600;
       text-align: left;
-      color: var(--text-secondary);
+      color: #334155;
     }
 
     .lampiran-block {
-      border: 1px solid var(--border);
+      border: 1px solid #cbd5e1;
       padding: 20px;
       margin-bottom: 20px;
-      border-radius: var(--radius-md);
+      border-radius: 16px;
       background: #ffffff;
     }
 
@@ -1186,9 +1194,9 @@
       width: 100%;
       height: 250px;
       object-fit: contain;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--bg);
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
     }
 
     .ttd-container {
@@ -1196,16 +1204,17 @@
       justify-content: space-between;
       margin-top: 32px;
       text-align: center;
-      background: var(--surface-hover);
+      background: #f8fafc;
       padding: 24px 20px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      color: #0f172a;
     }
     .ttd-box { width: 30%; font-size: 13px; }
     .ttd-space { height: 70px; }
     .page-break {
       margin-top: 36px;
-      border-top: 1px dashed var(--border-strong);
+      border-top: 1px dashed #94a3b8;
       padding-top: 28px;
     }
 
@@ -1219,13 +1228,12 @@
 
     @media print {
       @page { size: A4 portrait; margin: 15mm; }
-      body { background: white !important; color: black !important; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
-      .topbar-shell, header, nav, .back-link, .actions, .detail-actions-bar, .toast, .loading-overlay { display: none !important; }
+      body { background: white !important; color: black !important; font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif; }
+      .topbar-shell, header, nav, .back-link, .actions, .detail-actions-bar, .toast, .loading-overlay, .no-print { display: none !important; }
       main { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
-      .card, #cetakArea { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+      .card, #cetakArea { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; border-radius: 0 !important; }
 
       .page-break { page-break-before: always; padding-top: 10px; border-top: none !important; margin-top: 0 !important; }
-      .no-print { display: none !important; }
 
       .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
       .print-table th, .print-table td { border: 1px solid #000; padding: 6px; vertical-align: top; }
@@ -1250,13 +1258,8 @@
         padding: 12px 16px 0;
         gap: 10px;
       }
-      .brand-zone {
-        order: 1;
-      }
-      #userBadge {
-        order: 2;
-        margin-left: auto;
-      }
+      .brand-zone { order: 1; }
+      #userBadge { order: 2; margin-left: auto; }
       nav#nav {
         order: 3;
         width: 100%;
@@ -1267,48 +1270,25 @@
       .kpi-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-      .kpi-cell:nth-child(2) {
-        border-right: none;
-      }
+      .kpi-cell:nth-child(2) { border-right: none; }
       .kpi-cell:nth-child(1),
-      .kpi-cell:nth-child(2) {
-        border-bottom: 1px solid var(--border);
-      }
-      .grid-2 {
-        grid-template-columns: 1fr;
-      }
+      .kpi-cell:nth-child(2) { border-bottom: 1px solid var(--border); }
+      .grid-2 { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
-      main {
-        padding: 18px 16px 48px;
-      }
-      .card, #cetakArea {
-        padding: 18px 16px;
-      }
-      .kpi-strip {
-        grid-template-columns: 1fr;
-      }
+      main { padding: 18px 16px 48px; }
+      .card, #cetakArea { padding: 20px 16px; }
+      .kpi-strip { grid-template-columns: 1fr; }
       .kpi-cell {
         border-right: none;
         border-bottom: 1px solid var(--border);
       }
-      .kpi-cell:last-child {
-        border-bottom: none;
-      }
-      .detail-actions-bar {
-        grid-template-columns: 1fr;
-      }
-      .lampiran-images {
-        grid-template-columns: 1fr;
-      }
-      .ttd-container {
-        flex-direction: column;
-        gap: 24px;
-      }
-      .ttd-box {
-        width: 100%;
-      }
+      .kpi-cell:last-child { border-bottom: none; }
+      .detail-actions-bar { grid-template-columns: 1fr; }
+      .lampiran-images { grid-template-columns: 1fr; }
+      .ttd-container { flex-direction: column; gap: 24px; }
+      .ttd-box { width: 100%; }
     }
   </style>
 </head>
@@ -1356,10 +1336,13 @@
           <h2>Dashboard Program &amp; Laporan</h2>
           <p>Ringkasan realisasi dana masuk, penyaluran bantuan, dan sisa saldo program Yayasan Salam Satu Aspal.</p>
         </div>
-        <button type="button" class="btn secondary small" onclick="loadDashboard()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-          Muat Ulang
-        </button>
+        <div class="page-intro-actions">
+          <div class="theme-toggle-slot"></div>
+          <button type="button" class="btn secondary small" onclick="loadDashboard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            Muat Ulang
+          </button>
+        </div>
       </div>
 
       <div id="dashboardList">
@@ -1372,10 +1355,13 @@
 
     <!-- DETAIL PROGRAM (Sub-view dari Dashboard) -->
     <div class="view" id="view-detail">
-      <span class="back-link" onclick="showView('dashboard')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        Kembali ke Dashboard
-      </span>
+      <div class="no-print" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px;">
+        <span class="back-link" onclick="showView('dashboard')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Kembali ke Dashboard
+        </span>
+        <div class="theme-toggle-slot"></div>
+      </div>
       <div id="detailContent"></div>
     </div>
 
@@ -1385,6 +1371,9 @@
         <div>
           <h2>Program &amp; Donasi Masuk</h2>
           <p>Buat wadah program bantuan baru dan catat pemasukan dana dari donatur ke kas program.</p>
+        </div>
+        <div class="page-intro-actions">
+          <div class="theme-toggle-slot"></div>
         </div>
       </div>
 
@@ -1469,6 +1458,9 @@
           <h2>Database Penerima Manfaat</h2>
           <p>Pendaftaran dan direktori anak yatim penerima bantuan lintas wilayah.</p>
         </div>
+        <div class="page-intro-actions">
+          <div class="theme-toggle-slot"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -1538,6 +1530,9 @@
         <div>
           <h2>Distribusi &amp; Realisasi Bantuan</h2>
           <p>Jadwalkan penyaluran oleh Korwil dan unggah dokumentasi foto serta kwitansi belanja pada hari-H.</p>
+        </div>
+        <div class="page-intro-actions">
+          <div class="theme-toggle-slot"></div>
         </div>
       </div>
 
@@ -1655,6 +1650,38 @@
       namaAplikasi: 'Aplikasi Donasi & Program Bantuan — YASSA'
     };
 
+    // ---------- MODE TERANG / GELAP ----------
+    function getTheme() {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    }
+
+    function renderThemeToggles() {
+      var mode = getTheme();
+      var sunSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+      var moonSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+      var html =
+        '<div class="theme-toggle" role="group" aria-label="Pilih mode tampilan">' +
+          '<button type="button" onclick="setTheme(\'light\')" class="' + (mode === 'light' ? 'active-light' : '') + '">' + sunSvg + ' Terang</button>' +
+          '<button type="button" onclick="setTheme(\'dark\')" class="' + (mode === 'dark' ? 'active-dark' : '') + '">' + moonSvg + ' Gelap</button>' +
+        '</div>';
+      document.querySelectorAll('.theme-toggle-slot').forEach(function (el) {
+        el.innerHTML = html;
+      });
+    }
+
+    function setTheme(mode) {
+      if (mode === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      try { localStorage.setItem('yassa_theme', mode); } catch (e) {}
+      renderThemeToggles();
+      if (typeof monthlyTrendState !== 'undefined' && monthlyTrendState === 'ready') {
+        renderMonthlyTrendChart();
+      }
+    }
+
     // ---------- MODE EMBED (dibuka lewat iframe YASSA Hub) ----------
     var VALID_TABS = ['dashboard', 'programDonasi', 'penerima', 'distribusi'];
     var EMBED_PARAMS = new URLSearchParams(window.location.search);
@@ -1771,12 +1798,6 @@
       return 'https://lh3.googleusercontent.com/d/' + match[0];
     }
 
-    function buktiImgTag(url) {
-      var direct = driveDirectUrl_(url);
-      if (!direct) return '<span class="no-bukti">Belum ada</span>';
-      return '<img class="bukti-img" src="' + direct + '" alt="bukti" onerror="this.outerHTML=\'<span class=&quot;no-bukti&quot;>Gagal muat</span>\'">';
-    }
-
     function fmtDate(v) {
       if (!v) return '-';
       var d = new Date(v);
@@ -1832,12 +1853,12 @@
       });
     }
 
-    // ---------- DASHBOARD & LAPORAN (State + Client-side Filter + D3 Trend Chart) ----------
+    // ---------- DASHBOARD & LAPORAN ----------
     var cachedDashboardPrograms = [];
-    var dashboardFilterStatus = 'all'; // 'all' | 'aktif' | 'selesai'
+    var dashboardFilterStatus = 'all';
     var dashboardSearchQuery = '';
     var monthlyTrendData = [];
-    var monthlyTrendState = 'idle'; // 'idle' | 'loading' | 'ready' | 'error'
+    var monthlyTrendState = 'idle';
     var monthlyTrendReqId = 0;
 
     function parseDonationDate(raw) {
@@ -1845,7 +1866,6 @@
       if (raw instanceof Date) return isNaN(raw.getTime()) ? null : raw;
       var s = String(raw).trim();
       if (!s) return null;
-      // Tangani format DD/MM/YYYY atau DD-MM-YYYY
       var dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
       if (dmy) {
         var dtDmy = new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]));
@@ -1872,7 +1892,7 @@
           var dt = parseDonationDate(d.Tanggal);
           if (!dt) return;
           var yr = dt.getFullYear();
-          var mo = dt.getMonth(); // 0..11
+          var mo = dt.getMonth();
           var key = yr + '-' + (mo + 1 < 10 ? '0' + (mo + 1) : (mo + 1));
           if (!buckets[key]) {
             buckets[key] = {
@@ -1900,7 +1920,6 @@
         return b;
       });
 
-      // Tampilkan hingga 12 bulan terakhir agar grafik tetap proporsional dan mudah dibaca
       if (sorted.length > 12) {
         sorted = sorted.slice(sorted.length - 12);
       }
@@ -1970,13 +1989,14 @@
       if (metaEl) {
         metaEl.innerHTML =
           '<span>Periode: <b>' + monthlyTrendData.length + ' bln</b></span>' +
-          '<span>Rata-rata/bln: <b>' + formatCompactRp(avgMonthly) + '</b></span>';
+          '<span>Rata-rata/bln: <b class="emerald">' + formatCompactRp(avgMonthly) + '</b></span>';
       }
 
+      var isDark = getTheme() === 'dark';
       container.innerHTML = '';
       var width = container.clientWidth || 720;
       var height = container.clientHeight || 240;
-      var margin = { top: 14, right: 16, bottom: 32, left: 62 };
+      var margin = { top: 14, right: 16, bottom: 32, left: 64 };
       var innerWidth = Math.max(200, width - margin.left - margin.right);
       var innerHeight = Math.max(120, height - margin.top - margin.bottom);
 
@@ -2003,88 +2023,61 @@
         .nice(4)
         .range([innerHeight, 0]);
 
-      // Horizontal gridlines
       g.append('g')
-        .attr('class', 'grid-lines')
-        .call(
-          d3.axisLeft(y)
-            .ticks(4)
-            .tickSize(-innerWidth)
-            .tickFormat('')
-        )
+        .call(d3.axisLeft(y).ticks(4).tickSize(-innerWidth).tickFormat(''))
         .call(function (axis) {
           axis.select('.domain').remove();
           axis.selectAll('.tick line')
-            .attr('stroke', '#cbd5e1')
+            .attr('stroke', isDark ? 'rgba(255,255,255,0.07)' : '#e2e8f0')
             .attr('stroke-dasharray', '3,3');
         });
 
-      // Y Axis
       g.append('g')
-        .call(
-          d3.axisLeft(y)
-            .ticks(4)
-            .tickFormat(function (v) { return formatCompactRp(v); })
-        )
+        .call(d3.axisLeft(y).ticks(4).tickFormat(function (v) { return formatCompactRp(v); }))
         .call(function (axis) {
           axis.select('.domain').remove();
           axis.selectAll('.tick line').remove();
           axis.selectAll('.tick text')
-            .attr('fill', '#475569')
+            .attr('fill', isDark ? '#94a3b8' : '#64748b')
             .attr('font-family', 'JetBrains Mono, monospace')
             .attr('font-size', '11px');
         });
 
-      // X Axis (skip alternating labels on very narrow screens if > 6 bars)
       var step = (innerWidth < 460 && monthlyTrendData.length > 6) ? 2 : 1;
       g.append('g')
         .attr('transform', 'translate(0,' + innerHeight + ')')
         .call(
-          d3.axisBottom(x)
-            .tickValues(
-              monthlyTrendData
-                .filter(function (_, idx) { return idx % step === 0; })
-                .map(function (d) { return d.labelShort; })
-            )
+          d3.axisBottom(x).tickValues(
+            monthlyTrendData.filter(function (_, idx) { return idx % step === 0; }).map(function (d) { return d.labelShort; })
+          )
         )
         .call(function (axis) {
-          axis.select('.domain').attr('stroke', '#94a3b8');
+          axis.select('.domain').attr('stroke', isDark ? 'rgba(255,255,255,0.12)' : '#cbd5e1');
           axis.selectAll('.tick line').remove();
           axis.selectAll('.tick text')
-            .attr('fill', '#475569')
+            .attr('fill', isDark ? '#94a3b8' : '#64748b')
             .attr('font-family', 'Plus Jakarta Sans, sans-serif')
             .attr('font-size', '11.5px')
             .attr('dy', '0.9em');
         });
 
-      // Skeuomorphic beveled vertical gradient & soft elevation for bars
       var defs = svg.append('defs');
       var barGrad = defs.append('linearGradient')
-        .attr('id', 'skeuoBarGrad')
-        .attr('x1', '0%')
-        .attr('y1', '0%')
-        .attr('x2', '100%')
-        .attr('y2', '100%');
-      barGrad.append('stop').attr('offset', '0%').attr('stop-color', '#60a5fa');
-      barGrad.append('stop').attr('offset', '45%').attr('stop-color', '#2563eb');
-      barGrad.append('stop').attr('offset', '100%').attr('stop-color', '#1e40af');
+        .attr('id', 'yassaEmeraldBarGrad')
+        .attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
+      barGrad.append('stop').attr('offset', '0%').attr('stop-color', '#34d399');
+      barGrad.append('stop').attr('offset', '55%').attr('stop-color', '#10b981');
+      barGrad.append('stop').attr('offset', '100%').attr('stop-color', '#059669');
 
       var barGradHover = defs.append('linearGradient')
-        .attr('id', 'skeuoBarGradHover')
-        .attr('x1', '0%')
-        .attr('y1', '0%')
-        .attr('x2', '100%')
-        .attr('y2', '100%');
-      barGradHover.append('stop').attr('offset', '0%').attr('stop-color', '#93c5fd');
-      barGradHover.append('stop').attr('offset', '45%').attr('stop-color', '#3b82f6');
-      barGradHover.append('stop').attr('offset', '100%').attr('stop-color', '#1d4ed8');
+        .attr('id', 'yassaEmeraldBarGradHover')
+        .attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
+      barGradHover.append('stop').attr('offset', '0%').attr('stop-color', '#6ee7b7');
+      barGradHover.append('stop').attr('offset', '55%').attr('stop-color', '#34d399');
+      barGradHover.append('stop').attr('offset', '100%').attr('stop-color', '#10b981');
 
-      // Tooltip element
-      var tooltip = d3.select(container)
-        .append('div')
-        .attr('class', 'd3-tooltip');
+      var tooltip = d3.select(container).append('div').attr('class', 'd3-tooltip');
 
-      // Rounded-top bar path helper
       function topRoundedRect(bx, by, bw, bh, r) {
         if (bh <= 0) return 'M' + bx + ',' + (by + bh) + 'h' + bw + 'z';
         var rad = Math.min(r, bw / 2, bh);
@@ -2099,7 +2092,7 @@
         ].join(' ');
       }
 
-      var maxBarWidth = Math.min(x.bandwidth(), 54);
+      var maxBarWidth = Math.min(x.bandwidth(), 52);
       var barOffset = (x.bandwidth() - maxBarWidth) / 2;
 
       g.selectAll('.bar-item')
@@ -2111,15 +2104,12 @@
           var bx = x(d.labelShort) + barOffset;
           var by = y(d.total);
           var bh = Math.max(0, innerHeight - by);
-          return topRoundedRect(bx, by, maxBarWidth, bh, 5);
+          return topRoundedRect(bx, by, maxBarWidth, bh, 7);
         })
-        .attr('fill', 'url(#skeuoBarGrad)')
-        .attr('stroke', '#1e3a8a')
-        .attr('stroke-width', '0.75')
-        .style('filter', 'drop-shadow(0 2px 3px rgba(15, 23, 42, 0.18))')
+        .attr('fill', 'url(#yassaEmeraldBarGrad)')
         .style('cursor', 'pointer')
         .on('mouseenter', function (event, d) {
-          d3.select(this).attr('fill', 'url(#skeuoBarGradHover)');
+          d3.select(this).attr('fill', 'url(#yassaEmeraldBarGradHover)');
           var bx = margin.left + x(d.labelShort) + x.bandwidth() / 2;
           var by = margin.top + y(d.total);
           var clampedX = Math.max(85, Math.min(width - 85, bx));
@@ -2134,7 +2124,7 @@
             .classed('visible', true);
         })
         .on('mouseleave', function () {
-          d3.select(this).attr('fill', 'url(#skeuoBarGrad)');
+          d3.select(this).attr('fill', 'url(#yassaEmeraldBarGrad)');
           tooltip.classed('visible', false);
         });
     }
@@ -2153,7 +2143,7 @@
 
     function loadDashboard() {
       var wrap = document.getElementById('dashboardList');
-      wrap.innerHTML = '<div class="modern-loader"><div class="modern-spinner"></div><p>Menarik data terbaru dari server...</p></div>';
+      wrap.innerHTML = '<div class="card"><div class="modern-loader"><div class="modern-spinner"></div><p>Menarik data terbaru dari server...</p></div></div>';
       callBackend('getDashboardData').then(function (res) {
         if (res.success) {
           cachedDashboardPrograms = res.data || [];
@@ -2193,8 +2183,8 @@
         '</div>' +
         '<div>' +
           '<div class="ledger-rows">' +
-            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--green)">' + formatRp(p.totalMasuk) + '</b></div>' +
-            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--primary)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
+            '<div class="row-num"><span>Dana Masuk</span><b style="color:var(--yassa-green-text)">' + formatRp(p.totalMasuk) + '</b></div>' +
+            '<div class="row-num"><span>Sudah Tersalurkan</span><b style="color:var(--blue)">' + formatRp(p.totalTersalurkan) + '</b></div>' +
             '<div class="row-num"><span>Sisa Saldo</span><b>' + formatRp(p.saldo) + '</b></div>' +
           '</div>' +
           (p.targetDana > 0
@@ -2203,7 +2193,7 @@
             : '') +
           '<div class="actions">' +
             '<button class="btn small secondary" style="flex:1;" onclick="toggleStatus(\'' + escapeHtml(p.id) + '\')">Ubah Status</button>' +
-            '<button class="btn small" style="flex:2;" onclick="openDetail(\'' + escapeHtml(p.id) + '\')">Detail &amp; PDF</button>' +
+            '<button class="btn small" style="flex:1.6;" onclick="openDetail(\'' + escapeHtml(p.id) + '\')">Detail &amp; PDF</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -2217,7 +2207,6 @@
         return;
       }
 
-      // Hitung ringkasan KPI dari seluruh program
       var sumMasuk = 0, sumSalur = 0, sumSaldo = 0, countAktif = 0, countSelesai = 0;
       programs.forEach(function (p) {
         sumMasuk += Number(p.totalMasuk || 0);
@@ -2229,7 +2218,6 @@
 
       var html = '';
 
-      // 1. KPI Summary Strip
       html += '<div class="kpi-strip">' +
         '<div class="kpi-cell">' +
           '<span class="kpi-label">Total Program</span>' +
@@ -2243,7 +2231,7 @@
         '</div>' +
         '<div class="kpi-cell">' +
           '<span class="kpi-label">Sudah Tersalurkan</span>' +
-          '<span class="kpi-value primary">' + formatRp(sumSalur) + '</span>' +
+          '<span class="kpi-value blue">' + formatRp(sumSalur) + '</span>' +
           '<span class="kpi-sub">Realisasi bantuan selesai</span>' +
         '</div>' +
         '<div class="kpi-cell">' +
@@ -2253,7 +2241,6 @@
         '</div>' +
       '</div>';
 
-      // 2. Grafik Batang Tren Donasi Bulanan (D3.js)
       html += '<div class="card chart-card">' +
         '<div class="chart-header">' +
           '<div>' +
@@ -2265,7 +2252,6 @@
         '<div class="chart-body" id="monthlyDonationChart"></div>' +
       '</div>';
 
-      // 3. Filter & Search Toolbar
       html += '<div class="toolbar">' +
         '<div class="search-box">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>' +
@@ -2278,7 +2264,6 @@
         '</div>' +
       '</div>';
 
-      // Filter list client-side
       var q = dashboardSearchQuery.trim().toLowerCase();
       var filtered = programs.filter(function (p) {
         var isSelesai = p.status === 'Tidak Aktif' || p.status === 'Selesai';
@@ -2313,11 +2298,8 @@
       }
 
       wrap.innerHTML = html;
-
-      // Render grafik D3 menggunakan state saat ini (tanpa fetch ulang saat filter berubah)
       renderMonthlyTrendChart();
 
-      // Re-attach live search input listener while keeping cursor focus cleanly
       var searchEl = document.getElementById('dashboardSearchInput');
       if (searchEl) {
         searchEl.addEventListener('input', function (e) {
@@ -2345,42 +2327,33 @@
       var p = detail.program;
       var html = '<div id="cetakArea">';
 
-      // ==========================================
-      // HALAMAN 1: COVER & RINGKASAN EKSEKUTIF
-      // ==========================================
       html += '<div class="print-page">';
-
-      // Kop Surat
       html += '<table style="width:100%; border-collapse:collapse; margin-bottom:15px; min-width:0;"><tr>';
       html += '<td style="width:90px; border:none; padding:4px;"><img src="https://github.com/yayasansalamsatuaspaldc-eng/yassa/blob/main/logo_yassa.png?raw=true" style="width:85px; height:85px; object-fit:contain;" alt="Logo YASSA"></td>';
       html += '<td style="text-align:center; border:none; padding:4px;"><h1 style="margin:0; font-size:22px; color:#1e293b; text-transform:uppercase;">Yayasan Salam Satu Aspal</h1><p style="margin:4px 0 0; font-size:10px; color:#475569; line-height:1.4;">Akte Notaris No. 5 Tgl 02 Agustus 2022 | SK MENKUMHAM AHU-0024199.AH.01.12<br>Jalan H. Mean Raya No. 72 RT 001 RW 002, Karang Timur, Karang Tengah, Tangerang 15157 | Telp/WA: 081385009062</p></td>';
       html += '</tr></table><hr style="border:none; border-top:3px solid #1e293b; border-bottom:1px solid #1e293b; padding:1px 0; margin-bottom:25px;">';
 
-      html += '<h2 style="text-align:center; margin-bottom:5px; text-transform:uppercase;">Laporan Pertanggungjawaban</h2>';
-      html += '<h3 style="text-align:center; color:var(--primary); margin-top:0; margin-bottom:25px;">' + escapeHtml(p.Nama || '-') + '</h3>';
+      html += '<h2 style="text-align:center; margin-bottom:5px; text-transform:uppercase; color:#0f172a;">Laporan Pertanggungjawaban</h2>';
+      html += '<h3 style="text-align:center; color:#059669; margin-top:0; margin-bottom:25px;">' + escapeHtml(p.Nama || '-') + '</h3>';
 
       html += '<table style="width:100%; margin-bottom:28px; line-height:1.6; min-width:0;">';
-      html += '<tr><td style="width:165px; border:none; padding:4px 0;"><b>Deskripsi Program</b></td><td style="border:none; padding:4px 0;">: ' + escapeHtml(p.Deskripsi || '-') + '</td></tr>';
-      html += '<tr><td style="border:none; padding:4px 0;"><b>Periode Pelaksanaan</b></td><td style="border:none; padding:4px 0;">: ' + fmtDate(p.TanggalMulai) + ' s/d ' + fmtDate(p.TanggalSelesai) + '</td></tr>';
-      html += '<tr><td style="border:none; padding:4px 0;"><b>Target Dana</b></td><td style="border:none; padding:4px 0;" class="mono">: ' + formatRp(p.TargetDana) + '</td></tr>';
+      html += '<tr><td style="width:165px; border:none; padding:4px 0; color:#334155;"><b>Deskripsi Program</b></td><td style="border:none; padding:4px 0; color:#0f172a;">: ' + escapeHtml(p.Deskripsi || '-') + '</td></tr>';
+      html += '<tr><td style="border:none; padding:4px 0; color:#334155;"><b>Periode Pelaksanaan</b></td><td style="border:none; padding:4px 0; color:#0f172a;">: ' + fmtDate(p.TanggalMulai) + ' s/d ' + fmtDate(p.TanggalSelesai) + '</td></tr>';
+      html += '<tr><td style="border:none; padding:4px 0; color:#334155;"><b>Target Dana</b></td><td style="border:none; padding:4px 0; color:#0f172a;" class="mono">: ' + formatRp(p.TargetDana) + '</td></tr>';
       html += '</table>';
 
-      html += '<h4 style="margin-bottom:8px;">Ringkasan Keuangan</h4>';
+      html += '<h4 style="margin-bottom:8px; color:#0f172a;">Ringkasan Keuangan</h4>';
       html += '<table class="print-table">';
-      html += '<tr><td>Total Dana Masuk (Donasi)</td><td class="mono" style="text-align:right; font-weight:bold; color:var(--green);">' + formatRp(detail.totalMasuk) + '</td></tr>';
-      html += '<tr><td>Total Dana Bantuan Tersalurkan</td><td class="mono" style="text-align:right; font-weight:bold; color:var(--primary);">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
-      html += '<tr><td>Total Biaya Transport / Operasional</td><td class="mono" style="text-align:right; font-weight:bold; color:var(--amber);">' + formatRp(detail.totalTransport) + '</td></tr>';
+      html += '<tr><td>Total Dana Masuk (Donasi)</td><td class="mono" style="text-align:right; font-weight:bold; color:#047857;">' + formatRp(detail.totalMasuk) + '</td></tr>';
+      html += '<tr><td>Total Dana Bantuan Tersalurkan</td><td class="mono" style="text-align:right; font-weight:bold; color:#0369a1;">' + formatRp(detail.totalTersalurkan) + '</td></tr>';
+      html += '<tr><td>Total Biaya Transport / Operasional</td><td class="mono" style="text-align:right; font-weight:bold; color:#b45309;">' + formatRp(detail.totalTransport) + '</td></tr>';
       html += '<tr><td>Total Dana Terjadwal (Belum Selesai)</td><td class="mono" style="text-align:right; font-weight:bold;">' + formatRp(detail.totalTerjadwal) + '</td></tr>';
       html += '<tr style="background-color:#f1f5f9;"><td><b>Sisa Saldo Akhir</b></td><td class="mono" style="text-align:right; font-weight:bold; font-size:15px;">' + formatRp(detail.saldo) + '</td></tr>';
       html += '</table>';
-      html += '</div>'; // End Halaman 1
+      html += '</div>';
 
-      // ==========================================
-      // HALAMAN 2: RINCIAN TABEL & PENGESAHAN
-      // ==========================================
       html += '<div class="print-page page-break">';
-
-      html += '<h4 style="margin-bottom:8px;">A. Rincian Donasi Masuk</h4>';
+      html += '<h4 style="margin-bottom:8px; color:#0f172a;">A. Rincian Donasi Masuk</h4>';
       if (detail.donasi && detail.donasi.length > 0) {
         html += '<table class="print-table"><thead><tr><th>No</th><th>Nama Donatur</th><th>Tanggal</th><th>Metode</th><th style="text-align:right;">Nominal (Rp)</th></tr></thead><tbody>';
         detail.donasi.forEach(function (d, i) {
@@ -2388,10 +2361,10 @@
         });
         html += '</tbody></table>';
       } else {
-        html += '<p style="font-size:12px; font-style:italic; margin-bottom:20px; color:var(--muted);">Belum ada donasi masuk.</p>';
+        html += '<p style="font-size:12px; font-style:italic; margin-bottom:20px; color:#64748b;">Belum ada donasi masuk.</p>';
       }
 
-      html += '<h4 style="margin-bottom:8px;">B. Rincian Distribusi Bantuan</h4>';
+      html += '<h4 style="margin-bottom:8px; color:#0f172a;">B. Rincian Distribusi Bantuan</h4>';
       if (detail.penyaluran && detail.penyaluran.length > 0) {
         html += '<table class="print-table"><thead><tr><th>Kode</th><th>Nama Penerima</th><th>Wilayah / PIC</th><th>Item Bantuan</th><th style="text-align:right;">Nilai (Rp)</th><th style="text-align:right;">Transport (Rp)</th><th style="text-align:center;">Ref. Lampiran</th></tr></thead><tbody>';
         detail.penyaluran.forEach(function (py, i) {
@@ -2411,7 +2384,7 @@
         });
         html += '</tbody></table>';
       } else {
-        html += '<p style="font-size:12px; font-style:italic; color:var(--muted);">Belum ada penyaluran bantuan.</p>';
+        html += '<p style="font-size:12px; font-style:italic; color:#64748b;">Belum ada penyaluran bantuan.</p>';
       }
 
       html += '<div class="ttd-container">';
@@ -2419,31 +2392,26 @@
       html += '<div class="ttd-box"><p>Diperiksa Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Bendahara Yayasan</p></div>';
       html += '<div class="ttd-box"><p>Disetujui Oleh,</p><div class="ttd-space"></div><p><b>(___________________)</b><br>Ketua Umum YASSA</p></div>';
       html += '</div>';
+      html += '</div>';
 
-      html += '</div>'; // End Halaman 2
-
-      // ==========================================
-      // HALAMAN 3+: LAMPIRAN DOKUMENTASI (CROSS-REF)
-      // ==========================================
       var adaLampiran = detail.penyaluran && detail.penyaluran.some(function (py) { return py.Status === 'Selesai'; });
       if (adaLampiran) {
         html += '<div class="print-page page-break">';
-        html += '<h3 style="margin-bottom:20px; border-bottom:2px solid #e2e8f0; padding-bottom:10px;">Lampiran Dokumentasi Penyaluran</h3>';
+        html += '<h3 style="margin-bottom:20px; border-bottom:2px solid #e2e8f0; padding-bottom:10px; color:#0f172a;">Lampiran Dokumentasi Penyaluran</h3>';
 
         detail.penyaluran.forEach(function (py, i) {
           if (py.Status !== 'Selesai') return;
-
           var numStr = (i + 1) < 10 ? '00' + (i + 1) : ((i + 1) < 100 ? '0' + (i + 1) : (i + 1));
           var kode = 'LMP-' + numStr;
 
           html += '<div class="lampiran-block">';
-          html += '<h4 class="mono" style="margin:0 0 8px; color:var(--primary-dark); font-size:15px;">KODE REFERENSI: ' + kode + '</h4>';
+          html += '<h4 class="mono" style="margin:0 0 8px; color:#047857; font-size:15px;">KODE REFERENSI: ' + kode + '</h4>';
           html += '<p style="margin:0 0 6px; font-size:13px;"><b>Nama Penerima:</b> ' + escapeHtml(py.NamaPenerima) + ' | <b>Wilayah:</b> ' + escapeHtml(py.Wilayah) + ' | <b>Tgl Realisasi:</b> ' + fmtDate(py.TanggalRealisasi) + '</p>';
 
           var uangTransportPy = py.UangTransport || 0;
           var totalGabungan = (Number(py.NilaiRp) || 0) + Number(uangTransportPy);
-          html += '<p style="margin:0 0 12px; font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:6px 10px; display:inline-block;">';
-          html += 'Total Belanja: <b class="mono">' + formatRp(py.NilaiRp) + '</b> + Total Transport: <b class="mono">' + formatRp(uangTransportPy) + '</b> = <b class="mono" style="color:var(--primary);">' + formatRp(totalGabungan) + '</b>';
+          html += '<p style="margin:0 0 12px; font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px; display:inline-block;">';
+          html += 'Total Belanja: <b class="mono">' + formatRp(py.NilaiRp) + '</b> + Total Transport: <b class="mono">' + formatRp(uangTransportPy) + '</b> = <b class="mono" style="color:#059669;">' + formatRp(totalGabungan) + '</b>';
           html += '</p>';
 
           var imagesHtml = '';
@@ -2466,18 +2434,17 @@
         html += '</div>';
       }
 
-      html += '</div>'; // End cetakArea
+      html += '</div>';
 
       var namaFileAman = String(p.Nama || 'Program').replace(/[\\\/:*?"<>|']/g, '-').trim();
       html += '<div class="actions detail-actions-bar no-print">';
-      html += '<button class="btn" style="padding:13px 18px;" onclick="cetakLaporanFrontend(\'' + escapeHtml(namaFileAman) + '\')">Cetak Manual (Simpan ke HP/Laptop)</button>';
-      html += '<button class="btn emerald" style="padding:13px 18px;" onclick="simpanOtomatisKeDrive(\'' + escapeHtml(namaFileAman) + '\')">Simpan Otomatis ke Google Drive</button>';
+      html += '<button class="btn secondary" style="padding:13px 18px;" onclick="cetakLaporanFrontend(\'' + escapeHtml(namaFileAman) + '\')">Cetak Manual (Simpan ke HP/Laptop)</button>';
+      html += '<button class="btn" style="padding:13px 18px;" onclick="simpanOtomatisKeDrive(\'' + escapeHtml(namaFileAman) + '\')">Simpan Otomatis ke Google Drive</button>';
       html += '</div>';
 
       document.getElementById('detailContent').innerHTML = html;
     }
 
-    // ====== CETAK PDF DENGAN NAMA SESUAI PROGRAM ======
     function cetakLaporanFrontend(namaProgram) {
       if (!isEditor()) {
         toast('Hanya Superadmin/Admin yang bisa mencetak laporan. Silakan login.');
@@ -2485,19 +2452,12 @@
         return;
       }
       document.title = 'LPJ ' + namaProgram;
-
-      setTimeout(function () {
-        window.print();
-      }, 1000);
-
+      setTimeout(function () { window.print(); }, 1000);
       window.addEventListener('focus', function () {
-        setTimeout(function () {
-          document.title = APP_CONFIG.namaAplikasi;
-        }, 500);
+        setTimeout(function () { document.title = APP_CONFIG.namaAplikasi; }, 500);
       }, { once: true });
     }
 
-    // ====== SIMPAN OTOMATIS KE DRIVE ======
     function simpanOtomatisKeDrive(namaProgram) {
       if (!isEditor()) {
         toast('Hanya Superadmin/Admin yang bisa mencetak/menyimpan laporan. Silakan login.');
@@ -2528,7 +2488,6 @@
         block.style.cssText = 'border: 2px solid #333; padding: 15px; margin-top: 20px; page-break-inside: avoid; page-break-after: always;';
         var container = block.querySelector('.lampiran-images');
         if (!container) return;
-
         var divs = container.querySelectorAll('div');
         if (divs.length === 0) return;
 
@@ -2536,9 +2495,7 @@
         divs.forEach(function (div, index) {
           var img = div.querySelector('img');
           if (img) img.style.cssText = 'width:100%; height:900px; object-fit:contain; border:1px solid #ddd; padding:4px;';
-
           tableHtml += '<td style="width:50%; border:none; text-align:center; vertical-align:top; padding:10px;">' + div.innerHTML + '</td>';
-
           if ((index + 1) % 2 === 0 && (index + 1) < divs.length) {
             tableHtml += '</tr><tr>';
           }
@@ -2553,12 +2510,10 @@
       isSubmitting = true;
       showLoading('Menyiapkan dan Menyimpan PDF ke Google Drive...');
 
-      var payload = {
+      callBackend('simpanPDFkeDrive', {
         namaFile: 'LPJ ' + namaProgram,
         htmlString: cloneHtml.innerHTML
-      };
-
-      callBackend('simpanPDFkeDrive', payload).then(function (res) {
+      }).then(function (res) {
         if (res.success) {
           toast('Berhasil disimpan ke Google Drive.');
           setTimeout(function () { window.open(res.data.url, '_blank'); }, 1500);
@@ -2573,31 +2528,18 @@
       });
     }
 
-    // ====== KONVERSI GAMBAR KE BASE64 ======
     function readFileAsBase64(file) {
       return new Promise(function (resolve, reject) {
-        if (!file) {
-          resolve(null);
-          return;
-        }
+        if (!file) { resolve(null); return; }
         var reader = new FileReader();
         reader.onload = function (e) {
-          var dataUrl = e.target.result;
-          var base64 = dataUrl.split(',')[1];
-          resolve({
-            base64: base64,
-            mime: file.type,
-            name: file.name
-          });
+          resolve({ base64: e.target.result.split(',')[1], mime: file.type, name: file.name });
         };
-        reader.onerror = function (err) {
-          reject(err);
-        };
+        reader.onerror = function (err) { reject(err); };
         reader.readAsDataURL(file);
       });
     }
 
-    // ====== FORM PROGRAM & DONASI HANDLERS ======
     document.getElementById('formProgram').addEventListener('submit', function (e) {
       e.preventDefault();
       handleFormSubmit({
@@ -2614,9 +2556,7 @@
             tanggalSelesai: document.getElementById('p_selesai').value
           };
         },
-        onSuccess: function () {
-          loadProgramOptions();
-        }
+        onSuccess: function () { loadProgramOptions(); }
       });
     });
 
@@ -2643,7 +2583,6 @@
       });
     });
 
-    // ====== FORM UPLOAD BUKTI PENYALURAN ======
     document.getElementById('formBukti').addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -2700,7 +2639,6 @@
           foto3Base64: (dF3 && dF3.base64) || '', foto3Mime: (dF3 && dF3.mime) || '', foto3Name: (dF3 && dF3.name) || '',
           foto4Base64: (dF4 && dF4.base64) || '', foto4Mime: (dF4 && dF4.mime) || '', foto4Name: (dF4 && dF4.name) || '',
           foto5Base64: (dF5 && dF5.base64) || '', foto5Mime: (dF5 && dF5.mime) || '', foto5Name: (dF5 && dF5.name) || '',
-
           kwitansiBase64: (dK1 && dK1.base64) || '', kwitansiMime: (dK1 && dK1.mime) || '', kwitansiName: (dK1 && dK1.name) || '',
           kwitansi2Base64: (dK2 && dK2.base64) || '', kwitansi2Mime: (dK2 && dK2.mime) || '', kwitansi2Name: (dK2 && dK2.name) || '',
           kwitansi3Base64: (dK3 && dK3.base64) || '', kwitansi3Mime: (dK3 && dK3.mime) || '', kwitansi3Name: (dK3 && dK3.name) || '',
@@ -2734,10 +2672,8 @@
       }
     });
 
-    // ====== SIMPAN DATA PENERIMA ======
     document.getElementById('formPenerima').addEventListener('submit', function (e) {
       e.preventDefault();
-
       handleFormSubmit({
         form: this,
         loadingMsg: 'Menyimpan data anak yatim...',
@@ -2760,7 +2696,6 @@
       });
     });
 
-    // ---------- SHARED LOADERS ----------
     var cachedPenerimaList = [];
 
     function loadPenerimaTable() {
@@ -2879,10 +2814,8 @@
       }
     });
 
-    // ====== SIMPAN JADWAL DISTRIBUSI BANTUAN ======
     document.getElementById('formPenyaluran').addEventListener('submit', function (e) {
       e.preventDefault();
-
       var selPenerima = document.getElementById('py_penerima');
       var namaPenerimaText = selPenerima.options[selPenerima.selectedIndex].text;
 
@@ -2910,7 +2843,6 @@
       });
     });
 
-    // ====== MODUL DISTRIBUSI & JADWAL ======
     function loadTerjadwal() {
       var wrap = document.getElementById('listTerjadwal');
       wrap.innerHTML = '<div class="modern-loader"><div class="modern-spinner"></div><p>Menarik daftar jadwal bantuan...</p></div>';
@@ -2937,7 +2869,7 @@
         html += '<tr>' +
           '<td class="mono">' + fmtDate(item.tanggalJadwal) + '</td>' +
           '<td><b>' + escapeHtml(item.namaPenerima) + '</b><br><span style="font-size:12px;color:var(--muted)">' + escapeHtml(item.wilayah || '-') + '</span></td>' +
-          '<td>' + escapeHtml(item.itemBantuan) + '<br><b class="mono" style="color:var(--primary)">' + formatRp(item.nilaiRp) + '</b></td>' +
+          '<td>' + escapeHtml(item.itemBantuan) + '<br><b class="mono" style="color:var(--yassa-green-text)">' + formatRp(item.nilaiRp) + '</b></td>' +
           '<td>' + btn + '</td>' +
         '</tr>';
       });
@@ -2977,81 +2909,77 @@
         '}',
         '.app-locked input:not(#loginUsername):not(#loginPassword):not(#dashboardSearchInput):not(#searchPenerima), .app-locked select, .app-locked textarea {',
         '  pointer-events: none;',
-        '  background: #e2e8f0;',
-        '  color: #64748b;',
+        '  opacity: 0.65;',
         '}',
         '#userBadge {',
         '  display: none; align-items: center; gap: 10px;',
-        '  background: linear-gradient(180deg, #f8fafc 0%, #e4eaf1 100%);',
-        '  border: 1px solid #aab6c6;',
-        '  box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(15, 23, 42, 0.1);',
-        '  border-radius: 8px; padding: 4px 6px 4px 12px;',
-        '  font-size: 12.5px; color: #152033; white-space: nowrap; flex-shrink: 0;',
+        '  background: var(--card);',
+        '  border: 1px solid var(--border);',
+        '  border-radius: 16px; padding: 5px 6px 5px 14px;',
+        '  font-size: 12px; color: var(--text); white-space: nowrap; flex-shrink: 0;',
         '}',
-        '#userBadge b { font-weight: 700; color: #152033; }',
+        '#userBadge b { font-weight: 600; color: var(--text); }',
         '#userBadge .role-tag {',
-        '  font-size: 11px; font-weight: 700; color: #1d4ed8; margin-left: 4px;',
+        '  font-size: 11.5px; font-weight: 600; color: var(--yassa-green-text); margin-left: 4px;',
         '}',
-        '#userBadge .role-tag.viewer { color: #5a6a80; }',
+        '#userBadge .role-tag.viewer { color: var(--muted); }',
         '#logoutBtn {',
-        '  background: linear-gradient(180deg, #ffffff 0%, #e5ebf2 100%);',
-        '  border: 1px solid #aab6c6; color: #2e3d54;',
-        '  box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(15, 23, 42, 0.1);',
-        '  border-radius: 6px; padding: 4px 10px; font-family: inherit; font-size: 12px; font-weight: 600;',
-        '  cursor: pointer; transition: background 150ms, color 150ms, border-color 150ms;',
+        '  background: var(--surface-soft);',
+        '  border: 1px solid var(--border); color: var(--text-secondary);',
+        '  border-radius: 12px; padding: 5px 10px; font-family: inherit; font-size: 12px; font-weight: 600;',
+        '  cursor: pointer; transition: color 150ms, border-color 150ms;',
         '}',
-        '#logoutBtn:hover { background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%); color: #b91c1c; border-color: #fca5a5; }',
+        '#logoutBtn:hover { color: var(--red); border-color: var(--red); }',
         '#customLoginOverlay {',
         '  display: none; position: fixed; inset: 0;',
-        '  background-color: #dce2ea;',
-        '  background-image: radial-gradient(ellipse 80% 55% at 50% 25%, rgba(255, 255, 255, 0.55), transparent 70%), repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 3px);',
+        '  background: var(--bg);',
         '  z-index: 100000; justify-content: center; align-items: center; padding: 20px;',
         '}',
         '#customLoginBox {',
-        '  background: linear-gradient(180deg, #ffffff 0%, #f3f6fa 100%);',
-        '  padding: 32px 28px; border-radius: 12px; width: 100%; max-width: 390px;',
-        '  border: 1px solid #aab6c6;',
-        '  box-shadow: inset 0 1px 0 #ffffff, 0 18px 44px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.1);',
+        '  background: var(--card);',
+        '  padding: 32px 28px; border-radius: 24px; width: 100%; max-width: 400px;',
+        '  border: 1px solid var(--border);',
+        '  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);',
         '  text-align: left;',
         '}',
-        '.login-brand { font-size: 12px; font-weight: 700; color: #1d4ed8; margin-bottom: 6px; }',
-        '#customLoginBox h3 { margin: 0 0 6px; color: #152033; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }',
-        '#customLoginBox .login-sub { margin: 0 0 20px; color: #5a6a80; font-size: 13px; line-height: 1.5; }',
-        '.login-field-label { display: block; font-size: 12.5px; font-weight: 600; color: #2e3d54; margin: 0 0 6px; }',
+        '.login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }',
+        '.login-brand { font-size: 12px; font-weight: 700; color: var(--yassa-green-text); }',
+        '#customLoginBox h3 { margin: 0 0 6px; color: var(--text); font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }',
+        '#customLoginBox .login-sub { margin: 0 0 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }',
+        '.login-field-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 0 0 6px; }',
         '#loginUsername, #loginPassword {',
-        '  width: 100%; padding: 10px 12px; border: 1px solid #aebbc9; border-radius: 8px;',
+        '  width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 16px;',
         '  font-family: inherit; font-size: 14px; outline: none; text-align: left; box-sizing: border-box;',
-        '  background: linear-gradient(180deg, #edf2f7 0%, #ffffff 42%); color: #152033;',
-        '  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.12), 0 1px 0 rgba(255, 255, 255, 0.85);',
+        '  background: var(--surface-soft); color: var(--text);',
         '}',
         '#loginUsername { margin-bottom: 14px; }',
-        '.password-container { position: relative; width: 100%; margin-bottom: 18px; }',
+        '.password-container { position: relative; width: 100%; margin-bottom: 20px; }',
         '#loginPassword { padding-right: 42px; }',
         '.toggle-password-btn {',
         '  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);',
-        '  background: none; border: none; cursor: pointer; color: #5a6a80;',
+        '  background: none; border: none; cursor: pointer; color: var(--muted);',
         '  display: flex; align-items: center; justify-content: center; padding: 6px;',
         '}',
-        '.toggle-password-btn:hover { color: #152033; }',
-        '#loginUsername:focus, #loginPassword:focus { border-color: #1d4ed8; background: #ffffff; box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.1), 0 0 0 3px rgba(29, 78, 216, 0.18); }',
+        '.toggle-password-btn:hover { color: var(--text); }',
+        '#loginUsername:focus, #loginPassword:focus { border-color: var(--yassa-green); box-shadow: 0 0 0 3px var(--yassa-green-soft); }',
         '.login-actions { display: flex; gap: 10px; }',
         '.login-btn-submit {',
-        '  width: 100%; padding: 11px 16px; border: 1px solid #1e40af; border-radius: 8px;',
-        '  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%); color: #ffffff;',
-        '  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(15, 23, 42, 0.22);',
-        '  text-shadow: 0 -1px 0 rgba(15, 23, 42, 0.32);',
+        '  width: 100%; padding: 11px 16px; border: none; border-radius: 16px;',
+        '  background: var(--yassa-green); color: var(--btn-primary-ink);',
         '  font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;',
         '}',
-        '.login-btn-submit:hover { background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%); }',
-        '.login-btn-submit:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.36); }',
-        '.login-hint { margin: 16px 0 0; font-size: 12px; color: #5a6a80; text-align: center; line-height: 1.45; }'
+        '.login-btn-submit:hover { background: var(--yassa-green-hover); }',
+        '.login-hint { margin: 18px 0 0; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.45; }'
       ].join('\n');
       document.head.appendChild(style);
 
       var modalHtml = '' +
         '<div id="customLoginOverlay">' +
           '<div id="customLoginBox">' +
-            '<div class="login-brand">Yayasan Salam Satu Aspal</div>' +
+            '<div class="login-top">' +
+              '<span class="login-brand">Yayasan Salam Satu Aspal</span>' +
+              '<div class="theme-toggle-slot"></div>' +
+            '</div>' +
             '<h3>Masuk ke Sistem</h3>' +
             '<p class="login-sub">Gunakan akun terdaftar untuk mengelola program bantuan dan laporan pertanggungjawaban.</p>' +
             '<label class="login-field-label" for="loginUsername">Username</label>' +
@@ -3088,7 +3016,6 @@
         }
       });
 
-      // Izinkan tekan Enter di kolom password untuk langsung login
       document.getElementById('loginPassword').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -3105,6 +3032,7 @@
       var header = document.querySelector('header');
       header.appendChild(varUserBadge);
 
+      renderThemeToggles();
       restoreSession();
     }
 
@@ -3113,7 +3041,6 @@
         toast('Anda sudah login sebagai ' + currentUser.nama + '.');
         return;
       }
-
       document.getElementById('customLoginOverlay').style.display = 'flex';
       document.getElementById('loginUsername').value = '';
       document.getElementById('loginPassword').value = '';
@@ -3161,11 +3088,9 @@
 
     function applyLoginState(user, persist) {
       currentUser = user;
-
       if (persist) {
         try { sessionStorage.setItem('yassaSession', JSON.stringify(user)); } catch (e) {}
       }
-
       var isEd = user.role === 'superadmin' || user.role === 'admin';
       if (isEd) {
         document.body.classList.remove('app-locked');
@@ -3244,12 +3169,10 @@
         promptLogin();
         return;
       }
-
       if (isSubmitting) {
         toast('Mohon tunggu, proses lain sedang berjalan...');
         return;
       }
-
       var konfirmasi = confirm('Yakin ingin mengubah status program ini menjadi Aktif/Tidak Aktif?');
       if (!konfirmasi) return;
 
